@@ -1,0 +1,29 @@
+{% extends 'Homepage.html' %}
+{% load static %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="form-box" style="max-width: 600px;">
+  <div class="box-heading">Welcome to your Dashboard</div>
+
+  <p id="total_income" name="total_income">Total Income: ₹{{ total_income |floatformat:2 }}</p>
+  <p id="total_expense" name="total_expense">Total Expense: ₹{{ total_expense |floatformat:2 }}</p>
+  <p><strong>Balance: ₹{{ balance |floatformat:2 }}</strong></p>
+
+  <div class="form-box" style="max-width: 800px;">
+    <div class="box-heading">Financial Statistics</div>
+
+    <h3>Income vs Expense</h3>
+
+    <div style="height: 400px;">
+        <canvas id="incomeExpenseChart"></canvas>
+    </div>
+</div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+      const totalIncomeValue = parseFloat("{{ total_income|default:0 }}");
+      const totalExpenseValue = parseFloat("{{ total_expense|default:0 }}");
+  </script>
+  <script src="{% static 'graph.js' %}"></script>
+</div>
+{% endblock %}

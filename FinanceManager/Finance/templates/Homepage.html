@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Finance Manager{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body>
+  <div class="page-wrap">
+    <div class="page-card">
+
+      {% if user.is_authenticated %}
+      <header class="topbar">
+        <div class="brand"><span class="badge">💰</span> Finance Manager</div>
+        <nav class="navlinks">
+          <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Dashboard</a>
+          <a href="{% url 'transaction' %}" class="{% if request.resolver_match.url_name == 'transactions' %}active{% endif %}">Transactions</a>
+          <a href="{% url 'incomeAdd' %}" class="{% if request.resolver_match.url_name == 'add_income' %}active{% endif %}">Add Income</a>
+          <a href="{% url 'expenseAdd' %}" class="{% if request.resolver_match.url_name == 'add_expense' %}active{% endif %}">Add Expense</a>
+          <a href="{% url 'logout' %}">Logout</a>
+        </nav>
+      </header>
+      {% else %}
+      <header class="topbar">
+        <div class="brand"><span class="badge">💰</span> Finance Manager</div>
+        <nav class="navlinks">
+          <a href="{% url 'login' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Click here to login.</a>
+        </nav>
+      </header>
+      {%endif%}
+      <main class="content">
+        {% block content %}{% endblock %}
+      </main>
+
+    </div>
+  </div>
+</body>
+</html>

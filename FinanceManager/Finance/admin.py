@@ -1,0 +1,9 @@
+from django.contrib import admin
+from .models import *
+
+# admin.site.register(Register)
+admin.site.register(Profile)
+admin.site.register(Budget)
+admin.site.register(TransactionLogs)
+admin.site.register(Income)
+admin.site.register(Expense)

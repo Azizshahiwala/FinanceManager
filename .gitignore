@@ -1,0 +1,10 @@
+*.png
+*.jpeg
+*.webp
+*.mp4
+*.gif
+__pycache__
+migrations
+backup.txt
+*.env
+*.sqlite3
