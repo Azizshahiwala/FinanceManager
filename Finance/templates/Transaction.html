@@ -4,20 +4,6 @@
 {% block content %}
 <div class="section-heading"><span>All Transactions</span></div>
 <form method="get" style="margin-bottom: 20px;">
-  <!-- <label for="category">Filter by Category:</label> -->
-
-  <!-- <select name="category" id="category">
-    <option value="">All</option>
-
-    {% for category in categories %}
-      <option value="{{ category }}"
-        {% if request.GET.category == category %}selected{% endif %}>
-        {{ category }}
-      </option>
-    {% endfor %}
-  </select> -->
-<!-- 
-  <br><br> -->
 
   <label for="from_date">From Date:</label>
   <input type="date"
@@ -40,13 +26,14 @@
 <div class="tx-list">
   {% for tx in transactions %}
   <div class="tx-row">
-    <div class="tx-avatar">{{ tx.category|slice:":1" }}</div>
+    <div class="tx-avatar">{{ tx.type|slice:":1"|upper }}</div>
     <div class="tx-info">
-      <div class="cat">{{ tx.category }}{% if tx.description %} — {{ tx.description }}{% endif %}</div>
-      <div class="meta">{{ tx.date|date:"d M Y" }} · {{ tx.get_type_display }}</div>
+      <div class="cat">{{ tx.record }}</div>
+      <div class="meta">{{ tx.date|date:"d M Y" }} · {{ tx.type|capfirst }}</div>
+      {% if tx.description %}<div class="meta" style="font-style: italic; color: #64748b;">{{ tx.description }}</div>{% endif %}
     </div>
     <div class="tx-amount {% if tx.type == 'income' %}income{% else %}expense{% endif %}">
-      {% if tx.type == 'income' %}+{% endif %}₹{{ tx.amount }}
+      {% if tx.type == 'income' %}+{% else %}-{% endif %}₹{{ tx.amount|floatformat:2 }}
     </div>
   </div>
   {% empty %}
@@ -55,4 +42,4 @@
 </div>
 
 <p class="tx-count">Total Transactions: {{ transactions|length }}</p>
-{% endblock %}
+{% endblock %}

@@ -48,7 +48,7 @@ def logout(request):
 
 @login_required
 def transaction(request):
-    transactions = Transaction.objects.filter(user=request.user).order_by('-date')
+    transactions = TransactionLogs.objects.filter(user=request.user).order_by('-date')
     
     from_date = request.GET.get('from_date')
     to_date = request.GET.get('to_date')
@@ -66,40 +66,82 @@ def transaction(request):
 # def updateBudget(request):
 #     return render(request,"UpdateBudget.html")
 
+def addTransaction(request, type):
+    log = None
+    date = None
+    record = None
+    if type == 'expense':
+        log = Expense.objects.filter(user=request.user).order_by('-created_at').first()
+        item_name = log.item_name or 'N/A'
+        unit      = log.unit or 'unit'
+        amount    = log.amount or 0
+        description = f"{log.user}, created expense of {item_name}, amounted: {amount}, in {unit}(s)"
+
+    else:
+        log = Income.objects.filter(user=request.user).order_by('-created_at').first()
+        item_name = log.item_name or 'N/A'
+        amount    = log.amount or 0
+        description = f"{log.user}, created income of {item_name}, amounted: {amount}"
+
+    date = log.date
+    user_note = log.description or ''
+    item_name = log.item_name or 'N/A'
+
+    if user_note:
+        record = f"{item_name} - {user_note}"
+    else:
+        record = item_name
+
+    transactionlog = TransactionLogs(
+        user=request.user,
+        type=type,
+        date=date,
+        amount=log.amount,
+        record=record,
+        description=description
+    )
+    transactionlog.save()
+    return
+
 @login_required
 def expenseAdd(request):
     if request.method == 'POST':
-        form = TransactionForm(request.POST)
+        form = ExpenseDataForm(request.POST)
         if form.is_valid():
             txn = form.save(commit=False)
             txn.user = request.user
-            txn.type = 'expense'
+            txn.type = 'expense'            
             txn.save()
+            addTransaction(request, 'expense')
             
             return redirect('expenseAdd')
     else:
-        form = TransactionForm()
+        form = ExpenseDataForm()
     return render(request, "./ExpenseCategory/ExpenseAdd.html", {'form': form})
 
 @login_required
 def incomeAdd(request):
     if request.method == 'POST':
-        form = TransactionForm(request.POST)
+        form = IncomeDataForm(request.POST)
         if form.is_valid():
             txn = form.save(commit=False)
             txn.user = request.user
             txn.type = 'income'
             txn.save()
+            addTransaction(request, 'income')
             return redirect('dashboard')
     else:
-        form = TransactionForm()
+        form = IncomeDataForm()
     return render(request, "./IncomeCategory/IncomeAdd.html", {'form': form})
 
 @login_required
 def dashboard(request):
-    data = Transaction.objects.filter(user=request.user)
-    total_income = data.filter(type='income').aggregate(Sum('amount'))['amount__sum'] or 0
-    total_expense = data.filter(type='expense').aggregate(Sum('amount'))['amount__sum'] or 0
+    income_logs= Income.objects.filter(user=request.user)
+    expense_logs= Expense.objects.filter(user=request.user)
+
+    total_income = income_logs.filter(type='income').aggregate(Sum('amount'))['amount__sum'] or 0
+    total_expense = expense_logs.filter(type='expense').aggregate(Sum('amount'))['amount__sum'] or 0
+
     balance = total_income - total_expense
 
     return render(request, "Dashboard.html", {
@@ -107,8 +149,3 @@ def dashboard(request):
         'total_expense': total_expense,
         'balance': balance
     })
-@login_required
-def exportArea(request):
-    data = Transaction.objects.filter(user=request.user)
-    print(data)
-    return render(request, "ExportArea.html")
