@@ -13,6 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.core import signing
 from django.urls import reverse
+from django.utils.text import get_valid_filename
 from .forms import *
 from .models import Profile, TransactionLogs
 
@@ -293,8 +294,13 @@ def exportData(request):
     if request.method != 'GET':
         return HttpResponse('Only GET requests are supported for download.', status=405)
 
-    export_type = request.GET.get('export_dropdown', 'csv').strip().lower()
-    user_filename = request.GET.get('filename').strip().lower()
+    export_type = request.GET.get('export_dropdown', '').strip().lower()
+    if not export_type:
+        return render(request, "ExportArea.html")
+
+    user_filename = get_valid_filename(
+        request.GET.get('filename', 'transactions').strip()
+    ) or 'transactions'
     data = process_data(request.user)
 
     if export_type == 'csv':

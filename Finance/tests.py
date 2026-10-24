@@ -52,3 +52,23 @@ class LiveTransactionLinkTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertFalse(Profile.objects.filter(user=self.user).exists())
+
+    def test_export_page_renders_controls(self):
+        response = self.client.get(reverse('exportArea'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Download transactions')
+        self.assertContains(response, 'Generate live link')
+        self.assertContains(response, 'name="export_dropdown"')
+        self.assertContains(response, 'name="ttl"')
+
+    def test_export_form_downloads_csv_with_safe_filename(self):
+        response = self.client.get(
+            reverse('exportArea'),
+            {'export_dropdown': 'csv', 'filename': 'My transactions'}
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'text/csv')
+        self.assertIn('filename="My_transactions.csv"', response['Content-Disposition'])
+        self.assertIn('Salary', response.content.decode())

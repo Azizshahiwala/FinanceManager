@@ -403,10 +403,116 @@ form textarea:focus {
   margin-top: 10px;
 }
 
+/* ---------- Export area ---------- */
+
+.export-page { max-width: 680px; margin: 0 auto; }
+
+.export-intro { margin-bottom: 24px; }
+
+.export-eyebrow {
+  color: var(--pink-deep);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.export-intro h1 {
+  margin: 5px 0 7px;
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -0.7px;
+}
+
+.export-intro p,
+.export-card > p {
+  color: var(--ink-soft);
+  font-size: 13px;
+  margin: 0;
+}
+
+.export-grid { display: grid; gap: 16px; }
+
+.export-card {
+  background: var(--card-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 22px;
+}
+
+.export-card-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--black);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.export-live-icon { background: #DDF3E6; color: var(--income); }
+
+.export-card h2 {
+  margin: 0 0 5px;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.export-form { margin-top: 14px; }
+
+.export-form label,
+.live-link-result label {
+  margin-top: 13px;
+}
+
+.export-submit { margin-top: 18px; }
+
+.export-note { color: var(--ink-soft); font-size: 12px; margin: 12px 0 0; }
+
+.live-link-result {
+  margin-top: 18px;
+  padding-top: 15px;
+  border-top: 1px solid var(--border);
+}
+
+.live-link-controls { display: flex; gap: 8px; }
+
+.live-link-controls input {
+  min-width: 0;
+  flex: 1;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 12px;
+  padding: 10px;
+}
+
+.btn-secondary,
+.btn-danger {
+  border: 0;
+  border-radius: 100px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 10px 16px;
+}
+
+.btn-secondary { background: var(--black); color: #fff; }
+.btn-danger { background: #FBE0DD; color: var(--expense); margin-top: 12px; }
+.export-status { color: var(--ink-soft); font-size: 13px; margin: 12px 0 0; }
+
 /* ---------- Responsive ---------- */
 
 @media (max-width: 560px) {
   .stats-grid { grid-template-columns: 1fr; }
   .page-card { padding: 24px 18px 30px; }
   .navlinks { gap: 14px; font-size: 13px; }
+  .export-card { padding: 18px; }
+  .live-link-controls { flex-direction: column; }
 }
