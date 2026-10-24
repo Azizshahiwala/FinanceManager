@@ -21,6 +21,7 @@
           <a href="{% url 'transaction' %}" class="{% if request.resolver_match.url_name == 'transactions' %}active{% endif %}">Transactions</a>
           <a href="{% url 'incomeAdd' %}" class="{% if request.resolver_match.url_name == 'add_income' %}active{% endif %}">Add Income</a>
           <a href="{% url 'expenseAdd' %}" class="{% if request.resolver_match.url_name == 'add_expense' %}active{% endif %}">Add Expense</a>
+          <a href="{% url 'exportArea' %}" class="{% if request.resolver_match.url_name == 'exportArea' %}active{% endif %}">Export</a>
           <a href="{% url 'logout' %}">Logout</a>
         </nav>
       </header>

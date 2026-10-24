@@ -15,6 +15,7 @@ urlpatterns = [
     # path('update-budget/', views.updateBudget, name='updateBudget'),
     path('expense-add/', views.expenseAdd, name='expenseAdd'),
     path('income-add/', views.incomeAdd, name='incomeAdd'),
+    path('export-area/', views.exportData,name='exportArea')
     # path('statistics/', views.statistics, name='statistics'),
 
 ]

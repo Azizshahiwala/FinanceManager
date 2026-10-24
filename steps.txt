@@ -1,0 +1,172 @@
+----------------
+SETUP
+----------------
+First i setup and activate venv:
+
+1.python -m venv venv
+2.inside cmd, run ".\venv\Scripts\activate.bat"
+
+Now i install django:
+pip install django 
+------------------
+WALKTHROUGH
+------------------
+1. Run: django-admin startproject <ProjectName>
+
+now cd into <ProjectName> then we create an app.
+pip uses 'python' command prefix. so,
+2. python manage.py startapp <GiveAppName>
+(This will create application folder.)
+
+to run:
+3. python manage.py runserver <OptionalPort>
+(Use a port if you need.)
+-----------------
+CONFIGURATION
+-----------------
+RP = Root project / <ProjectName folder>
+-When you run startapp command, you need to add it inside RP's settings.py so that the project can use the app.
+-The [project folder] will be next to [application folder].
+
+add a new value inside 
+INSTALLED_APPS=[...,'Courses']
+
+-Now, we need to create pages(.html). 
+-So, inside <appname>/views.py , we import HttpResponse. 
+-Then call these pages using functions. I can also use 'render'
+- You need to add your html pages to <AppName>/templates/
+from django.http import HttpResponse
+def function(request):
+    return HttpResponse("<h1>smth...</h1>")
+
+OR 
+
+from django.shortcuts import render
+def function(request):
+    return render(request, 'page.html')
+
+
+-Now we need to bind the url and the function. So,
+
+1. goto RP/urls.py and inside urlpattern, add a path for app:
+
+from django.urls import path,include
+from django.contrib import admin
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('',include('<appname>.urls')),
+    #You can add more paths if there are more apps.
+]
+
+2. Now we bind to url. Hence, create another <AppName>/urls.py
+and then we will import the functions from views.py from this <AppName> folder
+
+from django.urls import path
+from django.contrib import admin
+from . import views 
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('',views.funcName),
+    path('errorpage/',views.errorpage),
+    path('smth/',views.smth),
+    #Now here you add functions 
+]
+
+-Now lets use db.sqlite!
+-we can create tables using models. Any table is created using 'class' keyword and the file becomes a model.
+
+Find models.py inside your app. Then create tables like this:
+
+class Course(models.Model):
+    name = models.CharField(max_length=50)
+    duration = models.CharField(max_length=50)
+    description = models.TextField(max_length=255)
+
+Note, i don't need to write __init__ myself, models.Model already gives one. i used:
+
+CharField 
+TextField
+
+the class data members become table column.
+
+Now, to use configure these tables, goto admin.py 
+then import the class. In my case its Course.
+
+from .models import Course, ...
+from django.db import models
+
+admin.site.register(Course)
+admin.site.register(...)
+
+You can make N Classes(Tables) and you can import as many tables as you like.
+
+-Now, you need to make migrations. Run these commands in order to register tables:
+1 python manage.py makemigrations
+2 python manage.py migrate
+
+-To use UI based admin controls, create a super user
+python manage.py createsuperuser
+
+After createsuperuser, you will be prompted to enter
+username, password, email, etc.. 
+
+-In College, set username and password as 'student' (You won't see the text but when you type, its being inputted.)
+and then set email field empty (Just hit enter)
+
+-However in my laptop i can input any of these fields as i like.
+
+-To access admin panel, add /admin in url. (<loopback_address>/admin)
+-----------------
+FORMS + REGISTER_STUDENT
+-----------------
+-inside StudentRegister.html, i used {{form.as_p}} to print the form.
+-this auto-generates html for each field, wrapped in <p> tags (label+input+errors). other options are .as_table and .as_ul.
+
+-noticed name and email fields print as big boxes (textarea) instead of normal input.
+-reason: in models.py i used TextField for name/email instead of CharField.
+-Django maps TextField -> <textarea>, CharField -> <input type="text">. enrollment is CharField so it prints small, name/email are TextField so they print big.
+
+-Now, i want a page where student can register. so instead of writing my own validation, i use ModelForm.
+
+-Find forms.py inside your app (create if not there). then bind it to your model:
+
+from django import forms
+from .models import *
+
+class StudentForm(forms.ModelForm):
+    class Meta:
+        model = Student
+        fields= ['enrollment','name','email']
+
+-this saves me from writing manual validation and manual db insert. it auto-generates fields based on model, validates using the model's rules (like max_length), and form.save() directly writes to db.
+
+-Now in views.py, i import this form and write register_student:
+
+from .forms import *
+
+def register_student(request):
+    if request.method == 'POST':
+        form = StudentForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('login/')
+    else:
+        form = StudentForm()
+    return render(request,'StudentRegister.html',{'form':form})
+
+-step by step what this does:
+1. check request.method. if its POST, means student submitted the form.
+2. bind submitted data (request.POST) to StudentForm.
+3. form.is_valid() runs validation. if valid, form.save() creates Student row in db.
+4. after saving, redirect to login page.
+5. if request is GET (just opening page) or form invalid, show blank/same form back using render.
+
+-note: request.POST is uppercase, not request.post. python/django is case sensitive here.
+
+-Now i will create the StudentRegister page. And inside i will write {{form.as_p}} to print the form.
+-this auto-generates html for each field, wrapped in <p> tags (label+input+errors). other options are .as_table and .as_ul.
+-noticed name and email fields print as big boxes (textarea) instead of normal input.
+-reason: in models.py i used TextField for name/email instead of CharField.
+-Django maps TextField -> <textarea>, CharField -> <input type="text">. enrollment is CharField so it prints small, name/email are TextField so they print big.

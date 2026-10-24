@@ -149,3 +149,6 @@ def dashboard(request):
         'total_expense': total_expense,
         'balance': balance
     })
+
+def exportData(request):
+    return render(request,"ExportArea.html")
