@@ -120,5 +120,6 @@ STATIC_URL = 'static/'
 LOGIN_URL = '/login/'
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'Finance\\static'),
 ]
+print(STATICFILES_DIRS)

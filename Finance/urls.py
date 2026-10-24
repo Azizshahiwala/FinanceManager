@@ -4,7 +4,7 @@ from django.contrib import admin
 from . import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    #path('admin/', admin.site.urls),
     path('', views.homePage, name='homePage'),
     path('error/', views.errorPage, name='errorPage'),
     path('login/', views.login, name='login'),
