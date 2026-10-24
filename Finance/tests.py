@@ -61,6 +61,22 @@ class LiveTransactionLinkTests(TestCase):
         self.assertContains(response, 'Generate live link')
         self.assertContains(response, 'name="export_dropdown"')
         self.assertContains(response, 'name="ttl"')
+        self.assertContains(response, 'Revoke live link')
+        self.assertRegex(
+            response.content.decode(),
+            r'<button[^>]*class="btn-danger"[^>]*disabled'
+        )
+
+    def test_revoke_button_is_enabled_after_reloading_with_active_link(self):
+        self.generate_link()
+
+        response = self.client.get(reverse('exportArea'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertRegex(
+            response.content.decode(),
+            r'<button[^>]*class="btn-danger"[^>]*>Revoke live link</button>'
+        )
 
     def test_export_form_downloads_csv_with_safe_filename(self):
         response = self.client.get(

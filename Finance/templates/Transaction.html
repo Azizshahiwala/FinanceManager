@@ -18,8 +18,8 @@
          value="{{ request.GET.to_date }}">
   
   <div style="margin-top: 15px; display: flex; gap: 8px;">
-      <button type="submit" style="background: #2563eb; color: white; border: 1px solid #2563eb; border-radius: 2px; padding: 4px 12px; font-size: 13px; cursor: pointer; height: 28px; line-height: 1;">Filter</button>
-      <a href="{% url 'transaction' %}" style="background: #64748b; color: white; border: 1px solid #64748b; border-radius: 2px; padding: 4px 12px; font-size: 13px; text-decoration: none; height: 28px; display: inline-flex; align-items: center; justify-content: center; line-height: 1;">Reset Filter</a>
+      <button type="submit" style="background: #e4c7a9; color: white; border: 1px solid #dbd5da; border-radius: 15px; padding: 4px 12px; font-size: 13px; cursor: pointer; height: 28px; line-height: 1;">Filter</button>
+      <a href="{% url 'transaction' %}" style="background: #e4c7a9; color: white; border: 1px solid #dbd5da; border-radius: 15px; padding: 4px 12px; font-size: 13px; text-decoration: none; height: 28px; display: inline-flex; align-items: center; justify-content: center; line-height: 1;">Reset Filter</a>
   </div>
 
 </form>
@@ -42,4 +42,4 @@
 </div>
 
 <p class="tx-count">Total Transactions: {{ transactions|length }}</p>
-{% endblock %}
+{% endblock %}

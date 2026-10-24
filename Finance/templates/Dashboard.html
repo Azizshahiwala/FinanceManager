@@ -1,29 +1,280 @@
+
 {% extends 'Homepage.html' %}
 {% load static %}
-{% block title %}Dashboard{% endblock %}
+
+{% block title %}Dashboard | Finance Manager{% endblock %}
 
 {% block content %}
-<div class="form-box" style="max-width: 600px;">
-  <div class="box-heading">Welcome to your Dashboard</div>
 
-  <p id="total_income" name="total_income">Total Income: ₹{{ total_income |floatformat:2 }}</p>
-  <p id="total_expense" name="total_expense">Total Expense: ₹{{ total_expense |floatformat:2 }}</p>
-  <p><strong>Balance: ₹{{ balance |floatformat:2 }}</strong></p>
+<style>
+.dashboard-page {
+    max-width: 1200px;
+    margin: 28px auto;
+    padding: 0 20px 35px;
+    color: #252525;
+}
 
-  <div class="form-box" style="max-width: 800px;">
-    <div class="box-heading">Financial Statistics</div>
+.dashboard-heading {
+    text-align: center;
+    margin-bottom: 28px;
+}
 
-    <h3>Income vs Expense</h3>
+.dashboard-heading h1 {
+    font-size: 28px;
+    margin-bottom: 8px;
+}
 
-    <div style="height: 400px;">
-        <canvas id="incomeExpenseChart"></canvas>
+.dashboard-heading p {
+    color: #777;
+    margin: 0;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 22px;
+    margin-bottom: 32px;
+}
+
+.summary-card {
+    padding: 25px;
+    border-radius: 14px;
+    border: 1px solid #e6e9e6;
+    background: #fff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.summary-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 7px 20px rgba(0, 0, 0, 0.09);
+}
+
+.summary-label {
+    font-size: 15px;
+    color: #666;
+    margin-bottom: 13px;
+}
+
+.summary-value {
+    font-size: clamp(19px, 2.2vw, 28px);
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.income-card {
+    border-top: 4px solid #4caf62;
+}
+
+.expense-card {
+    border-top: 4px solid #e58b75;
+}
+
+.balance-card {
+    border-top: 4px solid #8b9bb0;
+}
+
+.statistics-panel {
+    background: #fff;
+    border: 1px solid #e6e9e6;
+    border-radius: 14px;
+    padding: 25px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+.statistics-heading {
+    margin-bottom: 8px;
+}
+
+.statistics-heading h2 {
+    font-size: 23px;
+    margin: 0 0 8px;
+}
+
+.statistics-heading p {
+    color: #777;
+    margin: 0 0 22px;
+}
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 420px;
+}
+
+@media (max-width: 700px) {
+    .summary-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .summary-card {
+        padding: 20px;
+    }
+
+    .dashboard-heading h1 {
+        font-size: 23px;
+    }
+
+    .statistics-panel {
+        padding: 15px;
+    }
+
+    .chart-container {
+        height: 340px;
+    }
+}
+</style>
+
+<div class="dashboard-page">
+
+    <div class="dashboard-heading">
+        <h1>Welcome to your Dashboard</h1>
+        <p>Your financial overview for {{ report_year }}</p>
     </div>
+
+    <div class="summary-grid">
+
+        <div class="summary-card income-card">
+            <div class="summary-label">↑ Total Income</div>
+            <div class="summary-value">
+                ₹{{ total_income|floatformat:2 }}
+            </div>
+        </div>
+
+        <div class="summary-card expense-card">
+            <div class="summary-label">↓ Total Expenses</div>
+            <div class="summary-value">
+                ₹{{ total_expense|floatformat:2 }}
+            </div>
+        </div>
+
+        <div class="summary-card balance-card">
+            <div class="summary-label">◈ Current Balance</div>
+            <div class="summary-value">
+                ₹{{ balance|floatformat:2 }}
+            </div>
+        </div>
+
+    </div>
+
+    <section class="statistics-panel">
+        <div class="statistics-heading">
+            <h2>Financial Statistics</h2>
+            <p>Monthly Income, Expenditure and Net Balance · {{ report_year }}</p>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="incomeExpenseChart"></canvas>
+        </div>
+    </section>
+
 </div>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-      const totalIncomeValue = parseFloat("{{ total_income|default:0 }}");
-      const totalExpenseValue = parseFloat("{{ total_expense|default:0 }}");
-  </script>
-  <script src="{% static 'graph.js' %}"></script>
-</div>
+
+{{ monthly_labels|json_script:"monthly-labels" }}
+{{ monthly_income|json_script:"monthly-income" }}
+{{ monthly_expense|json_script:"monthly-expense" }}
+{{ monthly_balance|json_script:"monthly-balance" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const monthLabels = JSON.parse(
+    document.getElementById('monthly-labels').textContent
+);
+
+const incomeData = JSON.parse(
+    document.getElementById('monthly-income').textContent
+);
+
+const expenseData = JSON.parse(
+    document.getElementById('monthly-expense').textContent
+);
+
+const balanceData = JSON.parse(
+    document.getElementById('monthly-balance').textContent
+);
+
+const chartCanvas = document.getElementById('incomeExpenseChart');
+
+new Chart(chartCanvas, {
+    type: 'bar',
+
+    data: {
+        labels: monthLabels,
+
+        datasets: [
+            {
+                label: 'Income (₹)',
+                data: incomeData,
+                backgroundColor: '#4caf62',
+                borderRadius: 4
+            },
+            {
+                label: 'Expenditure (₹)',
+                data: expenseData,
+                backgroundColor: '#e9a078',
+                borderRadius: 4
+            },
+            {
+                label: 'Net Balance (₹)',
+                data: balanceData,
+                backgroundColor: '#aeb8c4',
+                borderRadius: 4
+            }
+        ]
+    },
+
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+
+        interaction: {
+            intersect: false,
+            mode: 'index'
+        },
+
+        plugins: {
+            legend: {
+                position: 'top',
+                labels: {
+                    usePointStyle: true,
+                    padding: 20
+                }
+            },
+
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.dataset.label + ': ₹' +
+                            Number(context.raw).toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                    }
+                }
+            }
+        },
+
+        scales: {
+            x: {
+                grid: {
+                    display: false
+                }
+            },
+
+            y: {
+                beginAtZero: true,
+
+                ticks: {
+                    callback: function(value) {
+                        return '₹' + Number(value).toLocaleString('en-IN');
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+
 {% endblock %}

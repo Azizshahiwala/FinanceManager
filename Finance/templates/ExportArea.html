@@ -11,7 +11,6 @@
 
   <div class="export-grid">
     <section class="export-card" aria-labelledby="download-heading">
-      <div class="export-card-icon" aria-hidden="true">⇩</div>
       <h2 id="download-heading">Download a file</h2>
       <p>Choose a format and a filename for your transaction history.</p>
 
@@ -41,7 +40,6 @@
     </section>
 
     <section class="export-card export-live-card" aria-labelledby="live-heading">
-      <div class="export-card-icon export-live-icon" aria-hidden="true">↗</div>
       <h2 id="live-heading">Temporary live link</h2>
       <p>Share a read-only link to your transaction data. Anyone with the link can view it until it expires or you revoke it.</p>
 
@@ -69,11 +67,12 @@
           <button type="button" id="copy-live-link" class="btn-secondary">Copy</button>
         </div>
         <p id="live-link-expiry" class="export-note"></p>
-        <form id="revoke-link-form" method="post" action="{% url 'revokeLiveLink' %}">
-          {% csrf_token %}
-          <button type="submit" class="btn-danger">Revoke live link</button>
-        </form>
       </div>
+
+      <form id="revoke-link-form" method="post" action="{% url 'revokeLiveLink' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-danger" {% if not live_link_active %}disabled{% endif %}>Revoke live link</button>
+      </form>
 
       <p id="live-link-status" class="export-status" role="status" aria-live="polite"></p>
     </section>
@@ -87,6 +86,7 @@
   const liveLinkResult = document.getElementById('live-link-result');
   const liveLinkUrl = document.getElementById('live-link-url');
   const liveLinkExpiry = document.getElementById('live-link-expiry');
+  const revokeLinkButton = revokeLinkForm.querySelector('button');
 
   async function postForm(form) {
     const response = await fetch(form.action, {
@@ -115,6 +115,7 @@
       liveLinkUrl.value = result.url;
       liveLinkExpiry.textContent = `This link expires ${new Date(result.expires_at * 1000).toLocaleString()}.`;
       liveLinkResult.hidden = false;
+      revokeLinkButton.disabled = false;
       liveLinkStatus.textContent = 'Live link created. Copy it now; it will not be shown again after leaving this page.';
     } catch (error) {
       liveLinkStatus.textContent = error.message;
@@ -129,6 +130,7 @@
       await postForm(revokeLinkForm);
       liveLinkResult.hidden = true;
       liveLinkUrl.value = '';
+      revokeLinkButton.disabled = true;
       liveLinkStatus.textContent = 'Live link revoked.';
     } catch (error) {
       liveLinkStatus.textContent = error.message;

@@ -296,7 +296,15 @@ def exportData(request):
 
     export_type = request.GET.get('export_dropdown', '').strip().lower()
     if not export_type:
-        return render(request, "ExportArea.html")
+        live_link_active = Profile.objects.filter(
+            user=request.user,
+            streaming_data=True
+        ).exists()
+        return render(
+            request,
+            "ExportArea.html",
+            {'live_link_active': live_link_active}
+        )
 
     user_filename = get_valid_filename(
         request.GET.get('filename', 'transactions').strip()
