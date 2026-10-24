@@ -8,3 +8,5 @@ migrations
 backup.txt
 *.env
 *.sqlite3
+!Finance/migrations/
+!Finance/migrations/*.py

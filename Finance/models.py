@@ -6,6 +6,8 @@ class Profile(models.Model):
     currency = models.CharField(max_length=10, default='INR')
     phone = models.CharField(max_length=15, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    streaming_data = models.BooleanField(default=False,blank=False)
+    streaming_token_version = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return self.user.username 
