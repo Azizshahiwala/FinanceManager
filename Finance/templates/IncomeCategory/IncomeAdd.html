@@ -8,8 +8,8 @@
   <form method="post" action="{% url 'incomeAdd' %}">
     {% csrf_token %}
 
-    <label for="id_category" style="margin-top:12px;">Category</label>
-    <select id="id_category" name="category" style="margin-top:12px;">
+    <label for="id_category" class="category-label">Category</label>
+    <select id="id_category" name="category" class="category-select">
       <option value="Salary">Salary</option>
       <option value="Freelance">Freelance</option>
       <option value="Business">Business</option>
@@ -17,7 +17,7 @@
       <option value="Other">Other</option>
     </select>
 
-    <div id="custom-category-box" style="display:none; margin-top:12px;">
+    <div id="custom-category-box" class="custom-category-box">
       <label for="custom_category">Enter your category</label>
       <input type="text" id="custom_category" name="custom_category" placeholder="Enter your category">
     </div>
@@ -28,9 +28,9 @@
 
       category.addEventListener('change', function () {
         if (this.value === 'Other') {
-          customCategoryBox.style.display = 'block';
+          customCategoryBox.classList.add('is-visible');
         } else {
-          customCategoryBox.style.display = 'none';
+          customCategoryBox.classList.remove('is-visible');
         }
       });
     </script>
@@ -49,7 +49,7 @@
     <label for="id_description">Description (optional)</label>
     <input type="text" id="id_description" name="description" placeholder="">
 
-    <div style="margin-top: 20px; text-align: left;">
+    <div class="form-actions">
       <button type="submit" class="btn-primary">Add Income</button>
     </div>
   </form>
