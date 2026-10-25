@@ -1,4 +1,5 @@
 {% extends 'Homepage.html' %}
+{%load static%}
 {% block title %}Add Expense{% endblock %}
 
 {% block content %}
@@ -81,6 +82,14 @@
     </div>
   </aside>
 
+</div>
+
+
+<div class="decorative-svg place-bottom place-right">
+    <img src="{% static 'folding_dollahh.svg' %}" alt="Floating dollar">
+</div>
+<div class="decorative-svg place-bottom place-left">
+    <img src="{% static 'messy.svg' %}" alt="Messy">
 </div>
 
 <script>

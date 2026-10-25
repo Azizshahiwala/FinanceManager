@@ -3,6 +3,7 @@
 *.webp
 *.mp4
 *.gif
+*.zip
 __pycache__
 migrations
 backup.txt

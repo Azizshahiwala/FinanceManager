@@ -1,10 +1,13 @@
 {% extends 'Homepage.html' %}
+{% load static %}
 {% block title %}Transactions{% endblock %}
 
 {% block content %}
 <div class="section-heading"><span>All Transactions</span></div>
 
+
 <form method="get" class="filter-bar">
+
   <div class="field">
     <label for="from_date">From date</label>
     <input type="date" name="from_date" id="from_date" value="{{ request.GET.from_date }}">
@@ -38,10 +41,20 @@
     <div><span class="pill {{ tx.type }}">{{ tx.type|capfirst }}</span></div>
     <div class="amt {{ tx.type }}">{% if tx.type == 'income' %}+{% else %}-{% endif %}₹{{ tx.amount|floatformat:2 }}</div>
   </div>
+
+  
   {% empty %}
   <p class="tx-count">No transactions found.</p>
   {% endfor %}
+  
 </div>
 
+<div class="decorative-svg place-bottom place-left">
+    <img src="{% static 'floating_money.svg' %}" alt="Floating Money">
+</div>
+
+<div class="decorative-svg place-bottom place-right">
+    <img src="{% static 'stacked_money.svg' %}" alt="Stacked Money">
+</div>
 <p class="tx-count">Total Transactions: {{ transactions|length }}</p>
 {% endblock %}

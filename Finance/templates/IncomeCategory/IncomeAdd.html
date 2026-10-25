@@ -1,4 +1,5 @@
 {% extends 'Homepage.html' %}
+{%load static%}
 {% block title %}Add Income{% endblock %}
 
 {% block content %}
@@ -71,6 +72,9 @@
 
 </div>
 
+<div class="decorative-svg place-bottom place-right">
+    <img src="{% static 'floating_money.svg' %}" alt="Floating money">
+</div>
 <script>
   const category = document.getElementById('id_category');
   const customCategoryBox = document.getElementById('custom-category-box');

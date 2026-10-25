@@ -841,3 +841,75 @@ form textarea:focus {
   .export-card { padding: 18px; }
   .live-link-controls { flex-direction: column; }
 }
+
+
+/* Base mobile styles (Default) */
+.responsive-svg-wrapper {
+    display: flex;
+    justify-content: center;
+    margin: 1.5rem auto;
+    width: 8rem; /* 128px */
+}
+
+.responsive-svg-wrapper img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+
+/* Small devices (tablets, 640px and up) */
+@media (min-width: 640px) {
+    .responsive-svg-wrapper {
+        width: 12rem; /* 192px */
+    }
+}
+
+/* Medium devices (laptops, 768px and up) */
+@media (min-width: 768px) {
+    .responsive-svg-wrapper {
+        width: 16rem; /* 256px */
+    }
+}
+
+/* Large devices (desktops, 1024px and up) */
+@media (min-width: 1024px) {
+    .responsive-svg-wrapper {
+        width: 20rem; /* 320px */
+    }
+}
+
+
+.decorative-svg {
+    position: fixed;
+    padding: 1.5rem;
+    opacity: 0.7;
+    pointer-events: none;
+    z-index: 0.6;
+    width: 6rem;
+}
+
+/* Horizontal Placement */
+.place-left { left: 0; }
+.place-right { right: 0; }
+
+/* Vertical Placement */
+.place-top { top: 0; }
+.place-bottom { bottom: 0; }
+
+/* Image scaling */
+.decorative-svg img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+
+/* Responsive Scaling */
+@media (min-width: 640px) {
+    .decorative-svg { width: 8rem; }
+}
+@media (min-width: 768px) {
+    .decorative-svg { width: 12rem; }
+}
+@media (min-width: 1024px) {
+    .decorative-svg { width: 14rem; }
+}

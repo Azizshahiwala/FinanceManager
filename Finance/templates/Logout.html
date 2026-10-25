@@ -1,10 +1,17 @@
 {% extends 'Homepage.html' %}
+{%load static%}
 {% block title %}Logged Out{% endblock %}
 
 {% block content %}
+<div class="responsive-svg-wrapper">
+    <img src="{% static 'stuff_to_do.svg' %}" alt="Stuff to do">
+</div>
+
 <div class="form-box center">
   <div class="box-heading">Logged Out</div>
   <p class="logout-message">You have been successfully logged out.</p>
   <a href="{% url 'login' %}" class="btn-primary logout-login-button">Login Again</a>
 </div>
+
+
 {% endblock %}

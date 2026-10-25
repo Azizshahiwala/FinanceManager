@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <!-- Subtle Background Blob -->
+  <path d="M 320 200 C 320 280 280 340 200 340 C 120 340 80 280 80 200 C 80 120 120 60 200 60 C 280 60 320 120 320 200 Z" fill="#F3F4F6" />
+  
+  <!-- Lock Shackle -->
+  <path d="M 130 200 V 150 C 130 110 170 80 200 80 C 230 80 270 110 270 150 V 200" fill="none" stroke="#232323" stroke-width="20" stroke-linecap="round" />
+  
+  <!-- Lock Body -->
+  <rect x="100" y="180" width="200" height="150" rx="24" fill="#F6C15B" stroke="#232323" stroke-width="16" />
+  
+  <!-- Keyhole -->
+  <circle cx="200" cy="240" r="20" fill="#232323" />
+  <path d="M 185 240 L 175 290 H 225 L 215 240 Z" fill="#232323" />
+
+  <!-- Floating Coin 1 -->
+  <circle cx="320" cy="110" r="30" fill="#A3D2F0" stroke="#232323" stroke-width="12" />
+  <path d="M 320 90 V 130 M 305 110 H 335" fill="none" stroke="#232323" stroke-width="10" stroke-linecap="round" />
+
+  <!-- Floating Coin 2 -->
+  <circle cx="70" cy="270" r="22" fill="#FFFFFF" stroke="#232323" stroke-width="12" />
+  <path d="M 70 255 V 285 M 60 270 H 80" fill="none" stroke="#232323" stroke-width="8" stroke-linecap="round" />
+</svg>

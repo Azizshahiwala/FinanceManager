@@ -1,4 +1,5 @@
 {% extends 'Homepage.html' %}
+{%load static%}
 {% block title %}Export Data{% endblock %}
 
 {% block content %}
@@ -77,8 +78,15 @@
       <p id="live-link-status" class="export-status" role="status" aria-live="polite"></p>
     </section>
   </div>
-</section>
 
+  
+</section>
+<div class="decorative-svg place-bottom place-left">
+    <img src="{% static 'messy.svg' %}" alt="Messy Finance">
+</div>
+<div class="decorative-svg place-bottom place-right">
+    <img src="{% static 'chill_person.svg' %}" alt="Messy Finance">
+</div>
 <script>
   const liveLinkForm = document.getElementById('live-link-form');
   const revokeLinkForm = document.getElementById('revoke-link-form');

@@ -150,12 +150,14 @@
 </style>
 
 <div class="dashboard-page">
+    <div class="responsive-svg-wrapper">
+        <img src="{% static 'chill_person.svg' %}" alt="Relaxing with finances">
+    </div>
 
-    <div class="dashboard-heading">
+    <div class="dashboard-heading text-center">
         <h1>Welcome to your Dashboard</h1>
         <p>Your financial overview for {{ report_year }}</p>
     </div>
-
     <div class="summary-grid">
 
         <div class="summary-card income-card">

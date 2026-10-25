@@ -1,7 +1,13 @@
 {% extends 'Homepage.html' %}
+{%load static%}
 {% block title %}Login{% endblock %}
 
 {% block content %}
+
+<div class="responsive-svg-wrapper">
+    <img src="{% static 'lock.svg' %}" alt="Lock">
+</div>
+
 <div class="auth-split">
 
   <div class="auth-form">
