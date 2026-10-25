@@ -3,38 +3,40 @@
 
 {% block content %}
 <div class="section-heading"><span>All Transactions</span></div>
-<form method="get" style="margin-bottom: 20px;">
 
-  <label for="from_date">From Date:</label>
-  <input type="date"
-         name="from_date"
-         id="from_date"
-         value="{{ request.GET.from_date }}">
-
-  <label for="to_date">To Date:</label>
-  <input type="date"
-         name="to_date"
-         id="to_date"
-         value="{{ request.GET.to_date }}">
-  
-  <div style="margin-top: 15px; display: flex; gap: 8px;">
-      <button type="submit" style="background: #e4c7a9; color: white; border: 1px solid #dbd5da; border-radius: 15px; padding: 4px 12px; font-size: 13px; cursor: pointer; height: 28px; line-height: 1;">Filter</button>
-      <a href="{% url 'transaction' %}" style="background: #e4c7a9; color: white; border: 1px solid #dbd5da; border-radius: 15px; padding: 4px 12px; font-size: 13px; text-decoration: none; height: 28px; display: inline-flex; align-items: center; justify-content: center; line-height: 1;">Reset Filter</a>
+<form method="get" class="filter-bar">
+  <div class="field">
+    <label for="from_date">From date</label>
+    <input type="date" name="from_date" id="from_date" value="{{ request.GET.from_date }}">
   </div>
 
+  <div class="field">
+    <label for="to_date">To date</label>
+    <input type="date" name="to_date" id="to_date" value="{{ request.GET.to_date }}">
+  </div>
+
+  <div class="filter-actions">
+    <button type="submit" class="btn-pill">Filter</button>
+    <a href="{% url 'transaction' %}" class="btn-pill ghost">Reset</a>
+  </div>
 </form>
-<div class="tx-list">
+
+<div class="tx-table">
+  <div class="tx-head">
+    <div>Date</div>
+    <div>Record</div>
+    <div>Description</div>
+    <div>Type</div>
+    <div class="amt">Amount</div>
+  </div>
+
   {% for tx in transactions %}
-  <div class="tx-row">
-    <div class="tx-avatar">{{ tx.type|slice:":1"|upper }}</div>
-    <div class="tx-info">
-      <div class="cat">{{ tx.record }}</div>
-      <div class="meta">{{ tx.date|date:"d M Y" }} · {{ tx.type|capfirst }}</div>
-      {% if tx.description %}<div class="meta" style="font-style: italic; color: #64748b;">{{ tx.description }}</div>{% endif %}
-    </div>
-    <div class="tx-amount {% if tx.type == 'income' %}income{% else %}expense{% endif %}">
-      {% if tx.type == 'income' %}+{% else %}-{% endif %}₹{{ tx.amount|floatformat:2 }}
-    </div>
+  <div class="tx-line">
+    <div class="date">{{ tx.date|date:"d M Y" }}</div>
+    <div class="rec">{{ tx.record }}</div>
+    <div class="desc">{{ tx.description }}</div>
+    <div><span class="pill {{ tx.type }}">{{ tx.type|capfirst }}</span></div>
+    <div class="amt {{ tx.type }}">{% if tx.type == 'income' %}+{% else %}-{% endif %}₹{{ tx.amount|floatformat:2 }}</div>
   </div>
   {% empty %}
   <p class="tx-count">No transactions found.</p>

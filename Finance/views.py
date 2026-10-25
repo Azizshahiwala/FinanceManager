@@ -1,3 +1,8 @@
+import calendar
+from datetime import date
+
+from django.db.models.functions import ExtractMonth
+from .models import Expense, Income, Profile, TransactionLogs
 from io import BytesIO
 import time
 from urllib.parse import urlencode
@@ -148,18 +153,107 @@ def incomeAdd(request):
 
 @login_required
 def dashboard(request):
-    income_logs= Income.objects.filter(user=request.user)
-    expense_logs= Expense.objects.filter(user=request.user)
+    today = date.today()
+    incomes = Income.objects.filter(user=request.user)
+    expenses = Expense.objects.filter(user=request.user)
 
-    total_income = income_logs.filter(type='income').aggregate(Sum('amount'))['amount__sum'] or 0
-    total_expense = expense_logs.filter(type='expense').aggregate(Sum('amount'))['amount__sum'] or 0
+    years = {d.year for d in incomes.dates('date', 'year')}
+    years |= {d.year for d in expenses.dates('date', 'year')}
+    years.add(today.year)
+    years = sorted(years, reverse=True)
 
+    try:
+        report_year = int(request.GET.get('year', today.year))
+    except ValueError:
+        report_year = today.year
+    if report_year not in years:
+        report_year = today.year
+
+    def monthly_totals(qs):
+        rows = (
+            qs.filter(date__year=report_year)
+            .annotate(m=ExtractMonth('date'))
+            .values('m')
+            .annotate(total=Sum('amount'))
+        )
+        data = [0.0] * 12
+        for row in rows:
+            data[row['m'] - 1] = float(row['total'])
+        return data
+
+    monthly_income = monthly_totals(incomes)
+    monthly_expense = monthly_totals(expenses)
+    monthly_balance = [round(i - e, 2) for i, e in zip(monthly_income, monthly_expense)]
+
+    total_income = sum(monthly_income)
+    total_expense = sum(monthly_expense)
     balance = total_income - total_expense
+    savings_rate = round(balance / total_income * 100, 1) if total_income > 0 else None
+    savings_bar = max(0, min(100, savings_rate)) if savings_rate is not None else 0
+
+    # Category breakdown (top 6 + Others) with shared colours for chart and legend
+    palette = ['#E85D91', '#17161A', '#2E9E6E', '#E2645B', '#F3AFC9', '#837C70', '#D9CFB8']
+    cats = list(
+        expenses.filter(date__year=report_year)
+        .values('category')
+        .annotate(total=Sum('amount'))
+        .order_by('-total')
+    )
+    rows = [(c['category'], float(c['total'])) for c in cats[:6]]
+    if len(cats) > 6:
+        rows.append(('Others', float(sum(c['total'] for c in cats[6:]))))
+    category_rows = [
+        {
+            'label': label,
+            'value': value,
+            'pct': round(value / total_expense * 100, 1) if total_expense else 0,
+            'color': palette[i],
+        }
+        for i, (label, value) in enumerate(rows)
+    ]
+
+    # Highlights
+    active_months = [i for i in range(12) if monthly_income[i] or monthly_expense[i]]
+    avg_monthly_expense = round(total_expense / len(active_months), 2) if active_months else 0
+
+    top_expense_month = top_expense_amount = None
+    if total_expense > 0:
+        idx = monthly_expense.index(max(monthly_expense))
+        top_expense_month = calendar.month_name[idx + 1]
+        top_expense_amount = monthly_expense[idx]
+
+    top_income_month = top_income_amount = None
+    if total_income > 0:
+        idx = monthly_income.index(max(monthly_income))
+        top_income_month = calendar.month_name[idx + 1]
+        top_income_amount = monthly_income[idx]
+
+    recent = TransactionLogs.objects.filter(user=request.user).order_by('-date', '-created_at')[:8]
 
     return render(request, "Dashboard.html", {
+        'report_year': report_year,
+        'years': years,
         'total_income': total_income,
         'total_expense': total_expense,
-        'balance': balance
+        'balance': balance,
+        'savings_rate': savings_rate,
+        'savings_bar': savings_bar,
+        'monthly_labels': list(calendar.month_abbr)[1:],
+        'monthly_income': monthly_income,
+        'monthly_expense': monthly_expense,
+        'monthly_balance': monthly_balance,
+        'category_rows': category_rows,
+        'category_labels': [r['label'] for r in category_rows],
+        'category_values': [r['value'] for r in category_rows],
+        'category_colors': [r['color'] for r in category_rows],
+        'avg_monthly_expense': avg_monthly_expense,
+        'top_category': category_rows[0]['label'] if category_rows else None,
+        'top_category_amount': category_rows[0]['value'] if category_rows else None,
+        'top_expense_month': top_expense_month,
+        'top_expense_amount': top_expense_amount,
+        'top_income_month': top_income_month,
+        'top_income_amount': top_income_amount,
+        'recent_transactions': recent,
     })
 
 def process_data(user):

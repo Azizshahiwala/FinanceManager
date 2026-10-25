@@ -2,25 +2,31 @@
 {% block title %}Login{% endblock %}
 
 {% block content %}
-<div class="logo-title">Personal Finance<span>Management System</span></div>
+<div class="auth-split">
 
-<div class="form-box">
-  <div class="box-heading">Welcome back!</div>
+  <div class="auth-form">
+    <div class="logo-title">Personal Finance<span>Management System</span></div>
 
-  <form method="post" action="{% url 'login' %}">
-    {% csrf_token %}
+    <div class="form-box">
+      <div class="box-heading">Welcome back!</div>
 
-    <label for="id_username">Username / Email</label>
-    <input type="text" id="id_username" name="username" required>
+      <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
 
-    <label for="id_password">Password</label>
-    <input type="password" id="id_password" name="password" required>
+        <label for="id_username">Username / Email</label>
+        <input type="text" id="id_username" name="username" required>
 
-    {% if form and form.errors %}
-      <p class="error">Invalid username or password.</p>
-    {% endif %}
+        <label for="id_password">Password</label>
+        <input type="password" id="id_password" name="password" required>
 
-    <button type="submit" class="btn-primary">Login</button>
-  </form>
+        {% if form and form.errors %}
+          <p class="error">Invalid username or password.</p>
+        {% endif %}
+
+        <button type="submit" class="btn-primary">Login</button>
+      </form>
+    </div>
+  </div>
+
 </div>
 {% endblock %}

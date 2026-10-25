@@ -1,4 +1,3 @@
-
 {% extends 'Homepage.html' %}
 {% load static %}
 
@@ -8,7 +7,8 @@
 
 <style>
 .dashboard-page {
-    max-width: 1200px;
+    width: 100%;
+    max-width: 1500px;
     margin: 28px auto;
     padding: 0 20px 35px;
     color: #252525;
@@ -102,6 +102,29 @@
     height: 420px;
 }
 
+.chart-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+    margin-top: 32px;
+}
+
+.chart-container.medium {
+    height: 340px;
+}
+
+.chart-empty {
+    color: #777;
+    text-align: center;
+    padding: 90px 0;
+}
+
+@media (max-width: 900px) {
+    .chart-row {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (max-width: 700px) {
     .summary-grid {
         grid-template-columns: 1fr;
@@ -169,12 +192,44 @@
         </div>
     </section>
 
+    <div class="chart-row">
+
+        <section class="statistics-panel">
+            <div class="statistics-heading">
+                <h2>Expenses by Category</h2>
+                <p>Where your money went · {{ report_year }}</p>
+            </div>
+
+            {% if category_values %}
+            <div class="chart-container medium">
+                <canvas id="categoryChart"></canvas>
+            </div>
+            {% else %}
+            <div class="chart-empty">No expenses recorded for {{ report_year }}.</div>
+            {% endif %}
+        </section>
+
+        <section class="statistics-panel">
+            <div class="statistics-heading">
+                <h2>Balance Trend</h2>
+                <p>Running net balance month by month · {{ report_year }}</p>
+            </div>
+
+            <div class="chart-container medium">
+                <canvas id="balanceTrendChart"></canvas>
+            </div>
+        </section>
+
+    </div>
+
 </div>
 
 {{ monthly_labels|json_script:"monthly-labels" }}
 {{ monthly_income|json_script:"monthly-income" }}
 {{ monthly_expense|json_script:"monthly-expense" }}
 {{ monthly_balance|json_script:"monthly-balance" }}
+{{ category_labels|json_script:"category-labels" }}
+{{ category_values|json_script:"category-values" }}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -266,6 +321,131 @@ new Chart(chartCanvas, {
             y: {
                 beginAtZero: true,
 
+                ticks: {
+                    callback: function(value) {
+                        return '₹' + Number(value).toLocaleString('en-IN');
+                    }
+                }
+            }
+        }
+    }
+});
+
+/* ---------- Expenses by category (doughnut) ---------- */
+const categoryCanvas = document.getElementById('categoryChart');
+
+if (categoryCanvas) {
+    new Chart(categoryCanvas, {
+        type: 'doughnut',
+
+        data: {
+            labels: JSON.parse(
+                document.getElementById('category-labels').textContent
+            ),
+            datasets: [{
+                data: JSON.parse(
+                    document.getElementById('category-values').textContent
+                ),
+                backgroundColor: [
+                    '#e9a078', '#4caf62', '#8b9bb0', '#e4c7a9',
+                    '#aeb8c4', '#d98c8c', '#b9d6a3'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '60%',
+
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 16
+                    }
+                },
+
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ₹' +
+                                Number(context.raw).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                });
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+/* ---------- Balance trend (running total line) ---------- */
+let runningBalance = 0;
+const cumulativeBalance = balanceData.map(function(value) {
+    runningBalance += Number(value);
+    return Math.round(runningBalance * 100) / 100;
+});
+
+new Chart(document.getElementById('balanceTrendChart'), {
+    type: 'line',
+
+    data: {
+        labels: monthLabels,
+
+        datasets: [{
+            label: 'Running Balance (₹)',
+            data: cumulativeBalance,
+            borderColor: '#4caf62',
+            backgroundColor: 'rgba(76, 175, 98, 0.15)',
+            fill: true,
+            tension: 0.35,
+            borderWidth: 3,
+            pointRadius: 4,
+            pointBackgroundColor: '#4caf62'
+        }]
+    },
+
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+
+        interaction: {
+            intersect: false,
+            mode: 'index'
+        },
+
+        plugins: {
+            legend: {
+                display: false
+            },
+
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return 'Balance: ₹' +
+                            Number(context.raw).toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                    }
+                }
+            }
+        },
+
+        scales: {
+            x: {
+                grid: {
+                    display: false
+                }
+            },
+
+            y: {
                 ticks: {
                     callback: function(value) {
                         return '₹' + Number(value).toLocaleString('en-IN');

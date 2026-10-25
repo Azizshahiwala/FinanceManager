@@ -2,56 +2,85 @@
 {% block title %}Add Income{% endblock %}
 
 {% block content %}
-<div class="form-box">
-  <div class="box-heading">Add Income</div>
+<div class="form-page">
 
-  <form method="post" action="{% url 'incomeAdd' %}">
-    {% csrf_token %}
+  <div class="form-card">
+    <div class="box-heading">Add Income</div>
+    <p class="form-sub">Record money coming in.</p>
 
-    <label for="id_category" class="category-label">Category</label>
-    <select id="id_category" name="category" class="category-select">
-      <option value="Salary">Salary</option>
-      <option value="Freelance">Freelance</option>
-      <option value="Business">Business</option>
-      <option value="Investment">Investment</option>
-      <option value="Other">Other</option>
-    </select>
+    <form method="post" action="{% url 'incomeAdd' %}">
+      {% csrf_token %}
 
-    <div id="custom-category-box" class="custom-category-box">
-      <label for="custom_category">Enter your category</label>
-      <input type="text" id="custom_category" name="custom_category" placeholder="Enter your category">
+      <div class="form-grid">
+        <div>
+          <label for="id_category" class="category-label">Category</label>
+          <select id="id_category" name="category" class="category-select">
+            <option value="Salary">Salary</option>
+            <option value="Freelance">Freelance</option>
+            <option value="Business">Business</option>
+            <option value="Investment">Investment</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="id_item_name">Income source / item name</label>
+          <input type="text" id="id_item_name" name="item_name" placeholder="e.g. Monthly Salary">
+        </div>
+
+        <div id="custom-category-box" class="custom-category-box span-2">
+          <label for="custom_category">Enter your category</label>
+          <input type="text" id="custom_category" name="custom_category" placeholder="Enter your category">
+        </div>
+
+        <div class="span-2">
+          <label for="id_amount">Amount (₹)</label>
+          <div class="amount-display">
+            <input type="number" step="0.01" id="id_amount" name="amount" placeholder="0.00" required>
+          </div>
+        </div>
+
+        <div>
+          <label for="id_date">Date</label>
+          <input type="date" id="id_date" name="date" required>
+        </div>
+
+        <div>
+          <label for="id_description">Description (optional)</label>
+          <input type="text" id="id_description" name="description" placeholder="">
+        </div>
+
+        <div class="form-actions span-2">
+          <button type="submit" class="btn-primary">Add Income</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <aside class="side-panel">
+    <div>
+      <h2>Keep your records complete</h2>
+      <p>Every entry feeds your dashboard charts and exports.</p>
+      <ul>
+        <li>Pick the closest category</li>
+        <li>Use a clear source name</li>
+        <li>Enter the date you received it</li>
+      </ul>
     </div>
+  </aside>
 
-    <script>
-      const category = document.getElementById('id_category');
-      const customCategoryBox = document.getElementById('custom-category-box');
-
-      category.addEventListener('change', function () {
-        if (this.value === 'Other') {
-          customCategoryBox.classList.add('is-visible');
-        } else {
-          customCategoryBox.classList.remove('is-visible');
-        }
-      });
-    </script>
-
-    <label for="id_item_name">Income source / item name</label>
-    <input type="text" id="id_item_name" name="item_name" placeholder="e.g. Monthly Salary">
-
-    <label for="id_amount">Amount (₹)</label>
-    <div class="amount-display">
-      <input type="number" step="0.01" id="id_amount" name="amount" placeholder="0.00" required>
-    </div>
-
-    <label for="id_date">Date</label>
-    <input type="date" id="id_date" name="date" required>
-
-    <label for="id_description">Description (optional)</label>
-    <input type="text" id="id_description" name="description" placeholder="">
-
-    <div class="form-actions">
-      <button type="submit" class="btn-primary">Add Income</button>
-    </div>
-  </form>
 </div>
-{% endblock %}
+
+<script>
+  const category = document.getElementById('id_category');
+  const customCategoryBox = document.getElementById('custom-category-box');
+
+  category.addEventListener('change', function () {
+    if (this.value === 'Other') {
+      customCategoryBox.classList.add('is-visible');
+    } else {
+      customCategoryBox.classList.remove('is-visible');
+    }
+  });
+</script>
+{% endblock %}
