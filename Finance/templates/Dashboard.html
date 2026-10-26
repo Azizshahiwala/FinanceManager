@@ -1,460 +1,77 @@
 {% extends 'Homepage.html' %}
 {% load static %}
-
 {% block title %}Dashboard | Finance Manager{% endblock %}
-
 {% block content %}
-
 <style>
-.dashboard-page {
-    width: 100%;
-    max-width: 1500px;
-    margin: 28px auto;
-    padding: 0 20px 35px;
-    color: #252525;
-}
-
-.dashboard-heading {
-    text-align: center;
-    margin-bottom: 28px;
-}
-
-.dashboard-heading h1 {
-    font-size: 28px;
-    margin-bottom: 8px;
-}
-
-.dashboard-heading p {
-    color: #777;
-    margin: 0;
-}
-
-.summary-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 22px;
-    margin-bottom: 32px;
-}
-
-.summary-card {
-    padding: 25px;
-    border: 1px solid #e6e9e6;
-    background: #fff;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.summary-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 7px 20px rgba(0, 0, 0, 0.09);
-}
-
-.summary-label {
-    font-size: 15px;
-    color: #666;
-    margin-bottom: 13px;
-}
-
-.summary-value {
-    font-size: clamp(19px, 2.2vw, 28px);
-    font-weight: 700;
-    overflow-wrap: anywhere;
-}
-
-.income-card {
-    border-top: 4px solid #4caf62;
-}
-
-.expense-card {
-    border-top: 4px solid #e58b75;
-}
-
-.balance-card {
-    border-top: 4px solid #8b9bb0;
-}
-
-.statistics-panel {
-    background: #fff;
-    border: 1px solid #e6e9e6;
-    padding: 25px;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
-}
-
-.statistics-heading {
-    margin-bottom: 8px;
-}
-
-.statistics-heading h2 {
-    font-size: 23px;
-    margin: 0 0 8px;
-}
-
-.statistics-heading p {
-    color: #777;
-    margin: 0 0 22px;
-}
-
-.chart-container {
-    position: relative;
-    width: 100%;
-    height: 420px;
-}
-
-.chart-row {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 22px;
-    margin-top: 32px;
-}
-
-.chart-container.medium {
-    height: 340px;
-}
-
-.chart-empty {
-    color: #777;
-    text-align: center;
-    padding: 90px 0;
-}
-
-@media (max-width: 900px) {
-    .chart-row {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 700px) {
-    .summary-grid {
-        grid-template-columns: 1fr;
-        gap: 14px;
-    }
-
-    .summary-card {
-        padding: 20px;
-    }
-
-    .dashboard-heading h1 {
-        font-size: 23px;
-    }
-
-    .statistics-panel {
-        padding: 15px;
-    }
-
-    .chart-container {
-        height: 340px;
-    }
-}
+.dashboard-page{width:100%;max-width:1450px;margin:0 auto;padding:8px 0 36px;color:#20251f}
+.dash-top{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin:8px 0 26px;flex-wrap:wrap}
+.dash-eyebrow{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#63806b;font-weight:800;margin:0 0 7px}
+.dash-title{font-size:clamp(25px,3vw,34px);letter-spacing:-1px;line-height:1.2;margin:0;font-weight:800}
+.dash-subtitle{color:#788078;margin:8px 0 0;font-size:14px}
+.year-form{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #e6ebe4;border-radius:12px;padding:7px 9px}
+.year-form label{font-size:12px;color:#687268;font-weight:700}.year-form select{border:0;background:#f5f8f3;padding:9px 12px;border-radius:8px;font:inherit;color:#263329}
+.dash-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:20px}
+.dash-card,.dash-panel{background:#fff;border:1px solid #e7ece5;border-radius:18px;box-shadow:0 6px 22px rgba(33,54,35,.045)}
+.dash-card{padding:21px 22px;position:relative;overflow:hidden;min-width:0}
+.dash-card:after{content:'';position:absolute;width:78px;height:78px;border-radius:50%;right:-22px;top:-25px;background:var(--tint);opacity:.65}
+.dash-card-head{display:flex;align-items:center;gap:10px;color:#6d776d;font-size:13px;font-weight:700;position:relative;z-index:1}
+.dash-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:var(--tint);font-size:17px}
+.dash-amount{font-size:clamp(21px,2.3vw,30px);font-weight:800;letter-spacing:-.7px;margin:15px 0 3px;overflow-wrap:anywhere;position:relative;z-index:1}
+.dash-note{font-size:12px;color:#8a9389;margin:0;position:relative;z-index:1}
+.dash-income{--tint:#e5f5e9}.dash-income .dash-amount{color:#268653}.dash-expense{--tint:#fff0e7}.dash-expense .dash-amount{color:#c46b48}.dash-balance{--tint:#e9efff}.dash-balance .dash-amount{color:#4d6eb1}
+.dash-highlights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:24px}
+.highlight{padding:15px 17px;background:#f7faf5;border:1px solid #eaf0e7;border-radius:14px;min-width:0}
+.highlight-label{font-size:12px;color:#778176;margin-bottom:5px}.highlight-value{font-size:16px;font-weight:800;color:#28372a;overflow-wrap:anywhere}.highlight-value small{font-size:12px;font-weight:600;color:#7d887c}
+.dash-panel{padding:22px;min-width:0}.dash-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}.dash-panel h2{font-size:17px;margin:0;font-weight:800;letter-spacing:-.25px}.dash-panel-head p{font-size:12px;color:#899188;margin:5px 0 0}.chart-area{position:relative;width:100%;height:330px}.dash-chart-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:18px;margin-top:18px}.chart-area.small{height:270px}.chart-empty{min-height:220px;display:grid;place-items:center;text-align:center;color:#8b9389;font-size:13px;padding:20px}
+.dash-transactions{margin-top:18px}.dash-table{width:100%;border-collapse:collapse}.dash-table th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:#899188;font-weight:800;padding:12px 10px;border-bottom:1px solid #edf0eb}.dash-table td{padding:14px 10px;border-bottom:1px solid #f0f2ee;font-size:13px}.dash-table tr:last-child td{border-bottom:0}.dash-record{font-weight:700;color:#2e392f}.dash-muted{color:#879087;font-size:12px}.dash-type{display:inline-block;padding:4px 9px;border-radius:20px;font-size:11px;font-weight:800}.dash-type.income{background:#e7f6ec;color:#268653}.dash-type.expense{background:#fff0e7;color:#bc6847}.dash-money{font-weight:800;white-space:nowrap;text-align:right}.dash-money.income{color:#268653}.dash-money.expense{color:#c46b48}.dash-view-all{font-size:12px;font-weight:800;color:#38784d;text-decoration:none;white-space:nowrap}.dash-view-all:hover{text-decoration:underline}.dash-empty{padding:26px 12px;text-align:center;color:#858f83;font-size:13px}
+@media(max-width:850px){.dash-chart-grid{grid-template-columns:1fr}.chart-area.small{height:300px}.dash-summary{gap:11px}.dash-card{padding:17px}}
+@media(max-width:600px){.dashboard-page{padding-top:0}.dash-summary{grid-template-columns:1fr;gap:10px}.dash-card{padding:17px 18px}.dash-amount{margin-top:10px}.dash-highlights{grid-template-columns:1fr;gap:9px}.highlight{padding:12px 14px}.dash-panel{padding:15px;border-radius:15px}.chart-area{height:290px}.chart-area.small{height:260px}.dash-table th:nth-child(3),.dash-table td:nth-child(3){display:none}.dash-table th,.dash-table td{padding:11px 6px}.dash-top{margin-top:0}}
 </style>
-
 <div class="dashboard-page">
-    <div class="responsive-svg-wrapper">
-        <img src="{% static 'chill_person.svg' %}" alt="Relaxing with finances">
-    </div>
+  <div class="dash-top">
+    <div><p class="dash-eyebrow">Your money, in focus</p><h1 class="dash-title">Financial overview</h1><p class="dash-subtitle">A clear picture of your finances for {{ report_year }}.</p></div>
+    <form method="get" class="year-form"><label for="report-year">Report year</label><select id="report-year" name="year" onchange="this.form.submit()">{% for year in years %}<option value="{{ year }}" {% if year == report_year %}selected{% endif %}>{{ year }}</option>{% endfor %}</select></form>
+  </div>
 
-    <div class="dashboard-heading text-center">
-        <h1>Welcome to your Dashboard</h1>
-        <p>Your financial overview for {{ report_year }}</p>
-    </div>
-    <div class="summary-grid">
+  <section class="dash-summary" aria-label="Financial summary">
+    <article class="dash-card dash-income"><div class="dash-card-head"><span class="dash-icon">↗</span>Total income</div><div class="dash-amount">₹{{ total_income|floatformat:2 }}</div><p class="dash-note">Money received in {{ report_year }}</p></article>
+    <article class="dash-card dash-expense"><div class="dash-card-head"><span class="dash-icon">↘</span>Total expenses</div><div class="dash-amount">₹{{ total_expense|floatformat:2 }}</div><p class="dash-note">Money spent in {{ report_year }}</p></article>
+    <article class="dash-card dash-balance"><div class="dash-card-head"><span class="dash-icon">◈</span>Net balance</div><div class="dash-amount">₹{{ balance|floatformat:2 }}</div><p class="dash-note">Income minus expenses for {{ report_year }}</p></article>
+  </section>
 
-        <div class="summary-card income-card">
-            <div class="summary-label">↑ Total Income</div>
-            <div class="summary-value">
-                ₹{{ total_income|floatformat:2 }}
-            </div>
-        </div>
+  <section class="dash-highlights" aria-label="Additional statistics">
+    <div class="highlight"><div class="highlight-label">Savings rate</div><div class="highlight-value">{% if savings_rate != None %}{{ savings_rate }}%{% else %}— <small>No income yet</small>{% endif %}</div></div>
+    <div class="highlight"><div class="highlight-label">Average monthly spending</div><div class="highlight-value">₹{{ avg_monthly_expense|floatformat:2 }}</div></div>
+    <div class="highlight"><div class="highlight-label">Highest spending month</div><div class="highlight-value">{% if top_expense_month %}{{ top_expense_month }} <small>· ₹{{ top_expense_amount|floatformat:2 }}</small>{% else %}— <small>No expenses yet</small>{% endif %}</div></div>
+  </section>
 
-        <div class="summary-card expense-card">
-            <div class="summary-label">↓ Total Expenses</div>
-            <div class="summary-value">
-                ₹{{ total_expense|floatformat:2 }}
-            </div>
-        </div>
+  <section class="dash-panel">
+    <div class="dash-panel-head"><div><h2>Income vs. expenses</h2><p>Monthly comparison with your net balance shown as a line.</p></div></div>
+    <div class="chart-area"><canvas id="incomeExpenseChart" aria-label="Monthly income and expense chart"></canvas></div>
+  </section>
 
-        <div class="summary-card balance-card">
-            <div class="summary-label">◈ Current Balance</div>
-            <div class="summary-value">
-                ₹{{ balance|floatformat:2 }}
-            </div>
-        </div>
-
-    </div>
-
-    <section class="statistics-panel">
-        <div class="statistics-heading">
-            <h2>Financial Statistics</h2>
-            <p>Monthly Income, Expenditure and Net Balance · {{ report_year }}</p>
-        </div>
-
-        <div class="chart-container">
-            <canvas id="incomeExpenseChart"></canvas>
-        </div>
+  <div class="dash-chart-grid">
+    <section class="dash-panel"><div class="dash-panel-head"><div><h2>Spending by category</h2><p>Which categories used the most money.</p></div></div>
+      {% if category_values %}<div class="chart-area small"><canvas id="categoryChart" aria-label="Expenses by category"></canvas></div>{% else %}<div class="chart-empty">No expenses recorded for {{ report_year }} yet.</div>{% endif %}
     </section>
-
-    <div class="chart-row">
-
-        <section class="statistics-panel">
-            <div class="statistics-heading">
-                <h2>Expenses by Category</h2>
-                <p>Where your money went · {{ report_year }}</p>
-            </div>
-
-            {% if category_values %}
-            <div class="chart-container medium">
-                <canvas id="categoryChart"></canvas>
-            </div>
-            {% else %}
-            <div class="chart-empty">No expenses recorded for {{ report_year }}.</div>
-            {% endif %}
-        </section>
-
-        <section class="statistics-panel">
-            <div class="statistics-heading">
-                <h2>Balance Trend</h2>
-                <p>Running net balance month by month · {{ report_year }}</p>
-            </div>
-
-            <div class="chart-container medium">
-                <canvas id="balanceTrendChart"></canvas>
-            </div>
-        </section>
-
-    </div>
+    <section class="dash-panel"><div class="dash-panel-head"><div><h2>Balance trend</h2><p>Running net balance across the selected year.</p></div></div><div class="chart-area small"><canvas id="balanceTrendChart" aria-label="Running balance trend"></canvas></div></section>
+  </div>
 
 </div>
-
-{{ monthly_labels|json_script:"monthly-labels" }}
-{{ monthly_income|json_script:"monthly-income" }}
-{{ monthly_expense|json_script:"monthly-expense" }}
-{{ monthly_balance|json_script:"monthly-balance" }}
-{{ category_labels|json_script:"category-labels" }}
-{{ category_values|json_script:"category-values" }}
-
+{{ monthly_labels|json_script:"monthly-labels" }}{{ monthly_income|json_script:"monthly-income" }}{{ monthly_expense|json_script:"monthly-expense" }}{{ monthly_balance|json_script:"monthly-balance" }}{{ category_labels|json_script:"category-labels" }}{{ category_values|json_script:"category-values" }}{{ category_colors|json_script:"category-colors" }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
-const monthLabels = JSON.parse(
-    document.getElementById('monthly-labels').textContent
-);
-
-const incomeData = JSON.parse(
-    document.getElementById('monthly-income').textContent
-);
-
-const expenseData = JSON.parse(
-    document.getElementById('monthly-expense').textContent
-);
-
-const balanceData = JSON.parse(
-    document.getElementById('monthly-balance').textContent
-);
-
-const chartCanvas = document.getElementById('incomeExpenseChart');
-
-new Chart(chartCanvas, {
-    type: 'bar',
-
-    data: {
-        labels: monthLabels,
-
-        datasets: [
-            {
-                label: 'Income (₹)',
-                data: incomeData,
-                backgroundColor: '#4caf62',
-                borderRadius: 4
-            },
-            {
-                label: 'Expenditure (₹)',
-                data: expenseData,
-                backgroundColor: '#e9a078',
-                borderRadius: 4
-            },
-            {
-                label: 'Net Balance (₹)',
-                data: balanceData,
-                backgroundColor: '#aeb8c4',
-                borderRadius: 4
-            }
-        ]
-    },
-
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-
-        interaction: {
-            intersect: false,
-            mode: 'index'
-        },
-
-        plugins: {
-            legend: {
-                position: 'top',
-                labels: {
-                    usePointStyle: true,
-                    padding: 20
-                }
-            },
-
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        return context.dataset.label + ': ₹' +
-                            Number(context.raw).toLocaleString('en-IN', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            });
-                    }
-                }
-            }
-        },
-
-        scales: {
-            x: {
-                grid: {
-                    display: false
-                }
-            },
-
-            y: {
-                beginAtZero: true,
-
-                ticks: {
-                    callback: function(value) {
-                        return '₹' + Number(value).toLocaleString('en-IN');
-                    }
-                }
-            }
-        }
-    }
-});
-
-/* ---------- Expenses by category (doughnut) ---------- */
-const categoryCanvas = document.getElementById('categoryChart');
-
-if (categoryCanvas) {
-    new Chart(categoryCanvas, {
-        type: 'doughnut',
-
-        data: {
-            labels: JSON.parse(
-                document.getElementById('category-labels').textContent
-            ),
-            datasets: [{
-                data: JSON.parse(
-                    document.getElementById('category-values').textContent
-                ),
-                backgroundColor: [
-                    '#e9a078', '#4caf62', '#8b9bb0', '#e4c7a9',
-                    '#aeb8c4', '#d98c8c', '#b9d6a3'
-                ],
-                borderWidth: 2,
-                borderColor: '#fff'
-            }]
-        },
-
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '60%',
-
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        usePointStyle: true,
-                        padding: 16
-                    }
-                },
-
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return context.label + ': ₹' +
-                                Number(context.raw).toLocaleString('en-IN', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                });
-                        }
-                    }
-                }
-            }
-        }
-    });
-}
-
-/* ---------- Balance trend (running total line) ---------- */
-let runningBalance = 0;
-const cumulativeBalance = balanceData.map(function(value) {
-    runningBalance += Number(value);
-    return Math.round(runningBalance * 100) / 100;
-});
-
-new Chart(document.getElementById('balanceTrendChart'), {
-    type: 'line',
-
-    data: {
-        labels: monthLabels,
-
-        datasets: [{
-            label: 'Running Balance (₹)',
-            data: cumulativeBalance,
-            borderColor: '#4caf62',
-            backgroundColor: 'rgba(76, 175, 98, 0.15)',
-            fill: true,
-            tension: 0.35,
-            borderWidth: 3,
-            pointRadius: 4,
-            pointBackgroundColor: '#4caf62'
-        }]
-    },
-
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-
-        interaction: {
-            intersect: false,
-            mode: 'index'
-        },
-
-        plugins: {
-            legend: {
-                display: false
-            },
-
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        return 'Balance: ₹' +
-                            Number(context.raw).toLocaleString('en-IN', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            });
-                    }
-                }
-            }
-        },
-
-        scales: {
-            x: {
-                grid: {
-                    display: false
-                }
-            },
-
-            y: {
-                ticks: {
-                    callback: function(value) {
-                        return '₹' + Number(value).toLocaleString('en-IN');
-                    }
-                }
-            }
-        }
-    }
-});
+(function(){
+ const getJSON=id=>JSON.parse(document.getElementById(id).textContent);
+ const months=getJSON('monthly-labels'), income=getJSON('monthly-income'), expense=getJSON('monthly-expense'), net=getJSON('monthly-balance');
+ const money=v=>'₹'+Number(v).toLocaleString('en-IN',{maximumFractionDigits:0});
+ const common={responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'top',labels:{usePointStyle:true,boxWidth:8,boxHeight:8,padding:18,color:'#667166',font:{family:'Plus Jakarta Sans, sans-serif',size:11}}},tooltip:{callbacks:{label:c=>c.dataset.label+': ₹'+Number(c.raw).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}}},scales:{x:{grid:{display:false},ticks:{color:'#879087',maxRotation:0,autoSkip:false,font:{size:10}}},y:{beginAtZero:true,grid:{color:'#eef1ec'},ticks:{color:'#879087',callback:money,font:{size:10}}}}};
+ const chartEl=document.getElementById('incomeExpenseChart');
+ new Chart(chartEl,{type:'bar',data:{labels:months,datasets:[{type:'bar',label:'Income',data:income,backgroundColor:'#78c894',borderRadius:5,maxBarThickness:24},{type:'bar',label:'Expenses',data:expense,backgroundColor:'#f1ad8b',borderRadius:5,maxBarThickness:24},{type:'line',label:'Net balance',data:net,borderColor:'#6685c3',backgroundColor:'#6685c3',pointBackgroundColor:'#fff',pointBorderColor:'#6685c3',pointBorderWidth:2,pointRadius:3,tension:.3,borderWidth:2.5} ]},options:{...common,scales:{...common.scales,x:{...common.scales.x,grid:{display:false}},y:{...common.scales.y,beginAtZero:true}},plugins:{...common.plugins,legend:{...common.plugins.legend,position:'top'}}}});
+ const categoryCanvas=document.getElementById('categoryChart');
+ if(categoryCanvas){const labels=getJSON('category-labels'),values=getJSON('category-values'),colors=getJSON('category-colors');new Chart(categoryCanvas,{type:'doughnut',data:{labels,datasets:[{data:values,backgroundColor:['#FFB6C1','#FFD166','#87CEEB','#98D8AA','#C5A6E8','#FFAD8F','#F4A261'],borderColor:'#fff',borderWidth:3,hoverOffset:5}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,boxHeight:8,padding:14,color:'#667166',font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+': ₹'+Number(c.raw).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}}}}});}
+ let running=0;const cumulative=net.map(v=>{running+=Number(v);return Math.round(running*100)/100;});
+ new Chart(document.getElementById('balanceTrendChart'),{type:'line',data:{labels:months,datasets:[{label:'Running net balance',data:cumulative,borderColor:'#6685c3',backgroundColor:'rgba(102,133,195,.13)',fill:true,tension:.32,borderWidth:2.5,pointRadius:2.5,pointHoverRadius:5,pointBackgroundColor:'#fff',pointBorderColor:'#6685c3'}]},options:{...common,plugins:{...common.plugins,legend:{display:false}},scales:{...common.scales,y:{...common.scales.y,beginAtZero:false}}}});
+})();
 </script>
-
 {% endblock %}

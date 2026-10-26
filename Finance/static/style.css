@@ -5,10 +5,10 @@
   --ink: #1B1A17;
   --ink-soft: #837C70;
   --pink: #F3AFC9;
-  --pink-deep: #E85D91;
-  --black: #17161A;
+  --pink-deep: #f89fc0;
+  --black: #e5a39e;
   --income: #2E9E6E;
-  --expense: #E2645B;
+  --expense:#e5a39e;
   --border: #EDE6D6;
   --radius-lg: 26px;
   --radius-md: 18px;
@@ -392,7 +392,7 @@ form textarea:focus {
 .btn-primary:hover { background: #000; }
 
 .btn-primary.expense-btn { background: var(--expense); }
-.btn-primary.expense-btn:hover { background: #cf4f47; }
+.btn-primary.expense-btn:hover { background: #e3847d; }
 
 .hint {
   text-align: center;
@@ -668,7 +668,7 @@ form textarea:focus {
 .form-grid .btn-primary { margin-top: 28px; }
 
 .side-panel {
-  background-color: #C68863;
+  background-color: rgb(241, 160, 154);
   color: #fff;
   width: fit-content;
   height: fit-content;
@@ -958,11 +958,352 @@ form textarea:focus {
 .entry-amt {
     font-size: 0.875rem;
     font-weight: 700;
-    color: #dc2626; /* Red for expenses */
+    color: #ed9494; /* Red for expenses */
 }
 
 .entry-amt-income {
     font-size: 0.875rem;
     font-weight: 700;
-    color: #16a34a; /* Green to indicate positive cash flow */
+    color: #8fe0ad; /* Green to indicate positive cash flow */
+}
+
+
+/* ===== Soft, clean form and export pages ===== */
+
+.form-page,
+.export-page {
+    width: 100%;
+    max-width: 1200px;
+    margin: 12px auto 40px;
+}
+
+.form-page {
+    grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.85fr);
+    gap: 24px;
+    align-items: start;
+}
+
+/* Add Income / Add Expense form */
+.form-card {
+    background: #fff;
+    border: 1px solid #eee6dc;
+    border-radius: 22px;
+    padding: 30px clamp(20px, 3vw, 36px);
+    box-shadow: 0 8px 26px rgba(40, 35, 25, 0.045);
+}
+
+.form-card .box-heading {
+    font-size: 24px;
+    letter-spacing: -0.5px;
+}
+
+.form-sub {
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 14px;
+}
+
+/* Right side panels */
+.right-column {
+    width: 100%;
+    max-width: none;
+    gap: 18px;
+}
+
+.side-panel {
+    width: 100%;
+    height: auto;
+    display: block;
+    background: #d58b86;
+    color: #fff;
+    border-radius: 22px;
+    padding: 26px;
+    box-shadow: 0 8px 22px rgba(40, 35, 25, 0.06);
+}
+
+.side-panel h2 {
+    font-size: 20px;
+    line-height: 1.4;
+}
+
+.side-panel p {
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.7;
+}
+
+.side-panel ul {
+    line-height: 1.9;
+    padding-left: 20px;
+}
+
+/* Recent entries and monthly total */
+.stats-panel {
+    background: #fff;
+    border: 1px solid #eee6dc;
+    border-radius: 22px;
+    padding: 24px;
+    box-shadow: 0 6px 22px rgba(40, 35, 25, 0.04);
+}
+
+.snapshot p {
+    margin-top: 8px;
+    font-size: 26px;
+    overflow-wrap: anywhere;
+}
+
+.recent-entries li {
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0ece5;
+}
+
+.recent-entries li:last-child {
+    border-bottom: none;
+}
+
+/* Softer inputs */
+.form-grid input,
+.form-grid select {
+    border-radius: 10px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-grid input:focus,
+.form-grid select:focus {
+    border-color: #d58b86;
+    box-shadow: 0 0 0 3px rgba(213, 139, 134, 0.12);
+}
+
+/* Export page */
+.export-intro {
+    margin: 10px 0 28px;
+}
+
+.export-intro h1 {
+    font-size: clamp(26px, 3vw, 34px);
+    letter-spacing: -0.8px;
+}
+
+.export-intro p {
+    line-height: 1.8;
+    max-width: 650px;
+}
+
+.export-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+    align-items: stretch;
+}
+
+.export-card {
+    background: #fff;
+    border: 1px solid #eee6dc;
+    border-radius: 22px;
+    padding: 28px;
+    box-shadow: 0 8px 26px rgba(40, 35, 25, 0.045);
+}
+
+.export-card h2 {
+    font-size: 19px;
+    margin-bottom: 9px;
+}
+
+.export-card > p {
+    line-height: 1.8;
+}
+
+.export-form {
+    margin-top: 20px;
+}
+
+.export-form input,
+.export-form select {
+    border-radius: 10px;
+}
+
+.export-submit {
+    border-radius: 11px;
+    padding: 13px 18px;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.export-submit:hover {
+    transform: translateY(-1px);
+}
+
+.btn-secondary,
+.btn-danger {
+    border-radius: 9px;
+}
+
+.live-link-controls input {
+    border-radius: 9px;
+}
+
+/* Responsive layout */
+@media (max-width: 900px) {
+    .form-page {
+        grid-template-columns: 1fr;
+    }
+
+    .right-column {
+        max-width: none;
+    }
+
+    .export-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 560px) {
+    .form-page,
+    .export-page {
+        margin-top: 0;
+    }
+
+    .form-card,
+    .side-panel,
+    .stats-panel,
+    .export-card {
+        padding: 20px;
+        border-radius: 17px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-grid .span-2 {
+        grid-column: auto;
+    }
+}
+
+/* Add Income: full-width form */
+.form-page {
+    max-width: 1000px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+}
+
+/* Make the form spacious */
+.form-card {
+    width: 100%;
+    padding: 34px;
+}
+
+/* Put both lower panels side by side */
+.right-column {
+    width: 100%;
+    max-width: none;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+    align-items: stretch;
+}
+
+/* Keep both panels equally tall */
+.side-panel,
+.stats-panel {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+/* Responsive: stack on smaller screens */
+@media (max-width: 700px) {
+    .right-column {
+        grid-template-columns: 1fr;
+    }
+
+    .form-card {
+        padding: 22px;
+    }
+}
+
+/* ===== Larger Export Page ===== */
+
+.export-page {
+    max-width: 1380px;
+    width: calc(100% - 64px);
+    margin: 28px auto 50px;
+}
+
+.export-intro {
+    margin-bottom: 36px;
+}
+
+.export-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px;
+    align-items: stretch;
+}
+
+.export-card {
+    min-height: 340px;
+    padding: 40px;
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    box-shadow: 0 10px 30px rgba(40, 35, 25, 0.06);
+}
+
+.export-card h2 {
+    font-size: 23px;
+    margin-bottom: 16px;
+}
+
+.export-card > p {
+    font-size: 15px;
+    line-height: 1.9;
+    margin-bottom: 22px;
+}
+
+.export-form {
+    margin-top: 24px;
+    gap: 18px;
+}
+
+.export-form input,
+.export-form select {
+    min-height: 48px;
+    padding: 12px 14px;
+    border-radius: 12px;
+}
+
+.export-submit {
+    min-height: 48px;
+    padding: 14px 22px;
+    border-radius: 12px;
+    margin-top: 8px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .export-page {
+        width: calc(100% - 40px);
+    }
+
+    .export-grid {
+        grid-template-columns: 1fr;
+        gap: 22px;
+    }
+
+    .export-card {
+        min-height: 300px;
+        padding: 30px;
+    }
+}
+
+@media (max-width: 560px) {
+    .export-page {
+        width: calc(100% - 28px);
+        margin-top: 12px;
+    }
+
+    .export-card {
+        min-height: auto;
+        padding: 22px;
+        border-radius: 18px;
+    }
 }

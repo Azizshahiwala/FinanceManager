@@ -41,9 +41,6 @@ def errorPage(request):
 def homePage(request):
     return render(request,"Homepage.html")
 
-# def register(request):
-#     return render(request,"RegisterPage.html")
-
 def login(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
@@ -79,9 +76,6 @@ def transaction(request):
     return render(request, "Transaction.html", {
         'transactions': transactions,
     })
-
-# def updateBudget(request):
-#     return render(request,"UpdateBudget.html")
 
 def addTransaction(request, type):
     log = None
@@ -136,8 +130,9 @@ def expenseAdd(request):
         form = ExpenseDataForm()
 
     today = date.today()
-    recent_expense = Expense.objects.order_by('-date')[:3]
+    recent_expense = Expense.objects.filter(user=request.user).order_by('-date')[:3]
     monthly_total_data = Expense.objects.filter(
+            user=request.user,
             date__year=today.year,
             date__month=today.month
         ).aggregate(Sum('amount')) 
@@ -166,8 +161,9 @@ def incomeAdd(request):
         form = IncomeDataForm()
 
     today = date.today()
-    recent_income = Income.objects.order_by('-date')[:3]
+    recent_income = Income.objects.filter(user=request.user).order_by('-date')[:3]
     monthly_total_data = Income.objects.filter(
+        user=request.user,
         date__year=today.year,
         date__month=today.month
     ).aggregate(Sum('amount')) 
