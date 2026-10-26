@@ -134,7 +134,22 @@ def expenseAdd(request):
             return redirect('expenseAdd')
     else:
         form = ExpenseDataForm()
-    return render(request, "./ExpenseCategory/ExpenseAdd.html", {'form': form})
+
+    today = date.today()
+    recent_expense = Expense.objects.order_by('-date')[:3]
+    monthly_total_data = Expense.objects.filter(
+            date__year=today.year,
+            date__month=today.month
+        ).aggregate(Sum('amount')) 
+    
+    current_month_total = monthly_total_data['amount__sum'] or 0
+        
+    history = {
+            'recent_expense':recent_expense,
+            'current_month_total':current_month_total
+        }
+    
+    return render(request, "./ExpenseCategory/ExpenseAdd.html", {'form': form,'history':history})
 
 @login_required
 def incomeAdd(request):
@@ -146,10 +161,25 @@ def incomeAdd(request):
             txn.type = 'income'
             txn.save()
             addTransaction(request, 'income')
-            return redirect('dashboard')
+            return redirect('incomeAdd')
     else:
         form = IncomeDataForm()
-    return render(request, "./IncomeCategory/IncomeAdd.html", {'form': form})
+
+    today = date.today()
+    recent_income = Income.objects.order_by('-date')[:3]
+    monthly_total_data = Income.objects.filter(
+        date__year=today.year,
+        date__month=today.month
+    ).aggregate(Sum('amount')) 
+
+    current_month_total = monthly_total_data['amount__sum'] or 0
+    
+    history = {
+        'recent_income':recent_income,
+        'current_month_total':current_month_total
+    }
+
+    return render(request, "./IncomeCategory/IncomeAdd.html", {'form': form,'history':history})
 
 @login_required
 def dashboard(request):

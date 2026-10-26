@@ -58,17 +58,49 @@
     </form>
   </div>
 
+  <div class="right-column">
+  
   <aside class="side-panel">
     <div>
-      <h2>Keep your records complete</h2>
-      <p>Every entry feeds your dashboard charts and exports.</p>
+      <h2>Track your earnings</h2>
+      <p>Categories power the income breakdown on your dashboard.</p>
       <ul>
-        <li>Pick the closest category</li>
-        <li>Use a clear source name</li>
-        <li>Enter the date you received it</li>
+        <li>Use clear source names for easy tracking</li>
+        <li>Choose "Other" to create your own category</li>
+        <li>Use the description for extra notes</li>
       </ul>
     </div>
   </aside>
+  
+  <div class="stats-panel">
+      <div class="snapshot">
+          <h3>This Month's Income</h3>
+          <p>₹{{ history.current_month_total|floatformat:2 }}</p>
+      </div>
+
+      <hr>
+
+      <!-- Recent Entries Log -->
+      <div class="recent-entries">
+          <h3>Recent Entries</h3>
+          <ul>
+              {% for entry in history.recent_income %}
+              <li>
+                  <div class="entry-info">
+                      <p class="entry-cat">{{ entry.category }}</p>
+                      <p class="entry-date">{{ entry.date|date:"M d, Y" }}</p>
+                  </div>
+                  <!-- Notice the new class and the + sign -->
+                  <span class="entry-amt-income">+₹{{ entry.amount|floatformat:2 }}</span>
+              </li>
+              {% empty %}
+              <li class="empty-msg">No recent entries.</li>
+              {% endfor %}
+          </ul>
+      </div>
+  </div>
+
+</div>
 
 </div>
 

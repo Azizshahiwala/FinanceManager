@@ -70,6 +70,7 @@
     </form>
   </div>
 
+  <div class="right-column">  
   <aside class="side-panel">
     <div>
       <h2>Track where it goes</h2>
@@ -81,7 +82,31 @@
       </ul>
     </div>
   </aside>
-
+  
+  <div class="stats-panel">
+      <div class="snapshot">
+          <h3>This Month's Expenses</h3>
+          <p>₹{{ history.current_month_total|floatformat:2 }}</p>
+      </div>
+      <hr>
+      <div class="recent-entries">
+          <h3>Recent Entries</h3>
+          <ul>
+              {% for entry in history.recent_expense %}
+              <li>
+                  <div class="entry-info">
+                      <p class="entry-cat">{{ entry.category }}</p>
+                      <p class="entry-date">{{ entry.date|date:"M d, Y" }}</p>
+                  </div>
+                  <span class="entry-amt">-₹{{ entry.amount|floatformat:2 }}</span>
+              </li>
+              {% empty %}
+              <li class="empty-msg">No recent entries.</li>
+              {% endfor %}
+          </ul>
+      </div>
+    </div>
+  </div>
 </div>
 
 
