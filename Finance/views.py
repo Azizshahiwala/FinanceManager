@@ -388,7 +388,17 @@ def liveTransactionData(request):
         return HttpResponse(status=404)
 
     data = process_data(profile.user)
-    response = JsonResponse(data.to_dict(orient='records'), safe=False)
+    records = data.to_dict(orient='records')
+
+    if request.GET.get('format') == 'json':
+        response = JsonResponse(records, safe=False)
+    else:
+        context = {
+            'transactions': records,
+            'owner': profile.user.username
+        }
+        response = render(request, "LiveTransactionData.html", context)
+
     response['Cache-Control'] = 'no-store, no-cache, must-revalidate, private'
     response['Pragma'] = 'no-cache'
     return response

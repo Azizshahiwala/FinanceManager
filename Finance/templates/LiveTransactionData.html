@@ -1,0 +1,94 @@
+{% extends 'Homepage.html' %}
+{% load static %}
+{% block title %}Live Transaction Data{% endblock %}
+
+{% block content %}
+<style>
+    /* Scoped styles to ensure the table looks clean without Tailwind */
+    .export-table-container {
+        overflow-x: auto;
+        margin-top: 2rem;
+        width: 100%;
+    }
+    .export-table {
+        width: 100%;
+        text-align: left;
+        border-collapse: collapse;
+    }
+    .export-table th {
+        padding: 1rem;
+        border-bottom: 2px solid #e5e7eb;
+        color: #6b7280;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .export-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #f3f4f6;
+        font-size: 0.875rem;
+        color: #4b5563;
+    }
+    .status-badge {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        /* No border-radius applied to maintain sharp edges */
+    }
+    .badge-income { background-color: #dcfce7; color: #16a34a; }
+    .badge-expense { background-color: #fee2e2; color: #dc2626; }
+    
+    .amt-income { color: #16a34a; font-weight: 700; text-align: right; }
+    .amt-expense { color: #dc2626; font-weight: 700; text-align: right; }
+</style>
+
+<div class="form-page" style="max-width: 1000px; margin: 0 auto;">
+    <div class="form-card" style="width: 100%;">
+        <div class="box-heading">Live Financial Export</div>
+        <p class="form-sub">Read-only transaction stream for <strong>{{ owner|title }}</strong>.</p>
+        
+        <div style="margin-top: 1rem; padding: 0.75rem; background-color: #f9fafb; border: 1px solid #e5e7eb; font-size: 0.875rem; color: #6b7280;">
+            <strong>Pro Tip:</strong> To use this live data directly in Google Sheets or Excel, append <code style="background: #e5e7eb; padding: 0.1rem 0.3rem;">&format=json</code> to the end of the URL in your address bar.
+        </div>
+
+        <div class="export-table-container">
+            <table class="export-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Record</th>
+                        <th>Description</th>
+                        <th style="text-align: right;">Amount (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for txn in transactions %}
+                    <tr>
+                        <td>{{ txn.date }}</td>
+                        <td>
+                            {% if txn.type == 'income' %}
+                                <span class="status-badge badge-income">Income</span>
+                            {% else %}
+                                <span class="status-badge badge-expense">Expense</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-weight: 600; color: #111827;">{{ txn.record }}</td>
+                        <td>{{ txn.description|default:"-" }}</td>
+                        <td class="{% if txn.type == 'income' %}amt-income{% else %}amt-expense{% endif %}">
+                            {% if txn.type == 'expense' %}-{% else %}+{% endif %}{{ txn.amount|floatformat:2 }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 3rem; color: #9ca3af;">No transactions found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}
