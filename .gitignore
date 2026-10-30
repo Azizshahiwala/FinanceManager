@@ -5,10 +5,11 @@
 *.gif
 *.zip
 *.md
+*.env
+*.sqlite3
+
 __pycache__
 migrations
 backup.txt
-*.env
-*.sqlite3
 !Finance/migrations/
 !Finance/migrations/*.py
