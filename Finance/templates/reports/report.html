@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finance Report – {{ data.period.label }} | Finance Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ==========================================================================
+       1. Base & Reset
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #F6F1E6;
+      --card: #FFFFFF;
+      --card-soft: #FBF7EE;
+      --ink: #1B1A17;
+      --ink-soft: #788078;
+      --ink-muted: #8E968D;
+      --border: #EDE6D6;
+      --border-subtle: #F0ECE1;
+      --income: #268653;
+      --income-bg: #E7F6EC;
+      --income-border: #78C894;
+      --expense: #C46B48;
+      --expense-bg: #FFF0E7;
+      --expense-border: #F1AD8B;
+      --balance: #4D6EB1;
+      --balance-bg: #E9EFFF;
+      --balance-border: #6685C3;
+      --savings: #8B5CF6;
+      --savings-bg: #F5F3FF;
+      --savings-border: #C4B5FD;
+      --warn: #E2645B;
+      --warn-bg: #FFF3EE;
+      --warn-border: #FCA5A5;
+      --pink: #F3AFC9;
+      --pink-deep: #E85D91;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 9px;
+      --radius-pill: 9999px;
+      --shadow-sheet: 0 8px 30px rgba(27, 26, 23, 0.05);
+      --shadow-card: 0 3px 14px rgba(27, 26, 23, 0.035);
+    }
+
+    @page {
+      size: A4;
+      margin: 14mm 14mm 18mm;
+      @bottom-right {
+        content: "Page " counter(page) " of " counter(pages);
+        font-size: 8.5pt;
+        color: #8E968D;
+        font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+        font-weight: 600;
+      }
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-size: 13.5px;
+      line-height: 1.55;
+      color: var(--ink);
+      background: #FFFFFF;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ==========================================================================
+       2. Screen Toolbar (Hidden on Print)
+       ========================================================================== */
+    .screen-toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 13px clamp(18px, 3.5vw, 56px);
+      width: 100%;
+    }
+
+    .toolbar-container {
+      max-width: 1550px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      width: 100%;
+    }
+
+    .toolbar-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--ink);
+      font-family: inherit;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      background: var(--card-soft);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      outline: none;
+      transition: all 0.15s ease;
+    }
+
+    .toolbar-back:hover {
+      background: #EDE6D6;
+      border-color: #D9CFB8;
+      color: var(--ink);
+    }
+
+    .toolbar-center {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12.5px;
+      color: var(--ink-soft);
+    }
+
+    .toolbar-period-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 12px;
+      background: var(--pink);
+      color: #7A284D;
+      font-weight: 800;
+      font-size: 11.5px;
+      border-radius: var(--radius-pill);
+      letter-spacing: 0.3px;
+    }
+
+    .toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-print {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--ink);
+      color: #FFFFFF;
+      border: 1px solid var(--ink);
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-print:hover {
+      background: #2E2C27;
+      box-shadow: 0 4px 12px rgba(27, 26, 23, 0.18);
+    }
+
+    /* ==========================================================================
+       3. Full-Page Container & Layout (Takes Full Page like IncomeAdd.html)
+       ========================================================================== */
+    .page-wrapper {
+      width: 100%;
+      max-width: 1550px;
+      margin: 0 auto;
+      padding: 24px clamp(18px, 3.5vw, 56px) 60px;
+      box-sizing: border-box;
+    }
+
+    .report-sheet {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sheet);
+      padding: 34px clamp(20px, 3vw, 48px);
+    }
+
+    /* ==========================================================================
+       4. Header & Document Metadata
+       ========================================================================== */
+    .report-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      padding-bottom: 24px;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 28px;
+    }
+
+    .header-brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .brand-emblem {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #E5A39E 0%, #D97E78 100%);
+      border-radius: 11px;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 4px 12px rgba(229, 163, 158, 0.45);
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+      color: var(--ink);
+    }
+
+    .brand-title span {
+      color: var(--pink-deep);
+    }
+
+    .doc-type-tag {
+      display: inline-block;
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      color: #63806B;
+      background: #EDF8F2;
+      border: 1px solid #D1EADE;
+      padding: 3px 11px;
+      border-radius: var(--radius-pill);
+      margin-bottom: 6px;
+    }
+
+    .report-main-title {
+      font-size: clamp(24px, 2.5vw, 32px);
+      font-weight: 800;
+      letter-spacing: -0.8px;
+      line-height: 1.2;
+      color: var(--ink);
+      margin-bottom: 5px;
+    }
+
+    .report-period-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--pink-deep);
+    }
+
+    .header-meta-card {
+      background: var(--card-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      min-width: 240px;
+      text-align: right;
+    }
+
+    .meta-item {
+      font-size: 11.5px;
+      color: var(--ink-soft);
+      margin-bottom: 4px;
+      line-height: 1.4;
+    }
+
+    .meta-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .meta-item strong {
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .meta-user-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink);
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      margin-bottom: 6px;
+    }
+
+    .meta-user-pill svg {
+      color: var(--ink-soft);
+    }
+
+    /* ==========================================================================
+       5. Executive KPI Summary Cards
+       ========================================================================== */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+
+    .kpi-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3.5px;
+    }
+
+    .kpi-card::after {
+      content: '';
+      position: absolute;
+      right: -16px;
+      top: -16px;
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: var(--kpi-tint);
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .kpi-card.income { --kpi-tint: var(--income-bg); }
+    .kpi-card.income::before { background: var(--income-border); }
+
+    .kpi-card.expense { --kpi-tint: var(--expense-bg); }
+    .kpi-card.expense::before { background: var(--expense-border); }
+
+    .kpi-card.balance { --kpi-tint: var(--balance-bg); }
+    .kpi-card.balance::before { background: var(--balance-border); }
+
+    .kpi-card.savings { --kpi-tint: var(--savings-bg); }
+    .kpi-card.savings::before { background: var(--pink); }
+
+    .kpi-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 10px;
+    }
+
+    .kpi-label {
+      font-size: 11.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--ink-soft);
+    }
+
+    .kpi-icon-pill {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      background: var(--kpi-tint);
+      display: grid;
+      place-items: center;
+    }
+
+    .kpi-value {
+      font-size: clamp(22px, 2.2vw, 28px);
+      font-weight: 800;
+      letter-spacing: -0.6px;
+      line-height: 1.2;
+      margin-bottom: 6px;
+      position: relative;
+      z-index: 1;
+      overflow-wrap: anywhere;
+    }
+
+    .kpi-card.income .kpi-value { color: var(--income); }
+    .kpi-card.expense .kpi-value { color: var(--expense); }
+    .kpi-card.balance .kpi-value { color: var(--balance); }
+    .kpi-card.savings .kpi-value { color: var(--pink-deep); }
+
+    .kpi-subtext {
+      font-size: 11px;
+      color: var(--ink-soft);
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .kpi-delta {
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+    }
+
+    .kpi-delta.up { background: var(--expense-bg); color: var(--expense); }
+    .kpi-delta.down { background: var(--income-bg); color: var(--income); }
+    .kpi-delta.neutral { background: var(--card-soft); color: var(--ink-soft); }
+
+    /* ==========================================================================
+       6. Section Standards & Card Panels
+       ========================================================================== */
+    .report-section {
+      margin-bottom: 28px;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      padding-bottom: 9px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-icon-wrap {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--pink-deep);
+    }
+
+    .section-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink-soft);
+      background: var(--card-soft);
+      border: 1px solid var(--border);
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+    }
+
+    /* ==========================================================================
+       7. Key Insights & Alerts Deck
+       ========================================================================== */
+    .insights-deck {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .insight-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      line-height: 1.5;
+      border-left: 3.5px solid transparent;
+    }
+
+    .insight-item.warn {
+      background: var(--warn-bg);
+      border-left-color: var(--warn);
+      color: #991B1B;
+    }
+
+    .insight-item.good {
+      background: var(--income-bg);
+      border-left-color: var(--income);
+      color: #065F46;
+    }
+
+    .insight-item.info {
+      background: var(--savings-bg);
+      border-left-color: var(--savings);
+      color: #4C1D95;
+    }
+
+    .insight-icon {
+      flex-shrink: 0;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+    }
+
+    .insight-item.warn .insight-icon { color: var(--warn); }
+    .insight-item.good .insight-icon { color: var(--income); }
+    .insight-item.info .insight-icon { color: var(--savings); }
+
+    .insight-content {
+      flex: 1;
+      font-weight: 500;
+    }
+
+    /* ==========================================================================
+       8. Visual Analytics Grid & Charts
+       ========================================================================== */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .chart-panel {
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .chart-panel.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .chart-panel-head {
+      margin-bottom: 14px;
+    }
+
+    .chart-panel-title {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: var(--ink);
+      letter-spacing: -0.2px;
+    }
+
+    .chart-panel-subtitle {
+      font-size: 11.5px;
+      color: var(--ink-soft);
+      margin-top: 2px;
+    }
+
+    .chart-svg-wrap {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .chart-svg-wrap svg {
+      width: 100%;
+      height: auto;
+      max-height: 290px;
+      display: block;
+    }
+
+    /* ==========================================================================
+       9. Tables (Category, Budget, Inflow, Outflow, Ledger)
+       ========================================================================== */
+    .table-container {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      background: #FFFFFF;
+    }
+
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+
+    .report-table th {
+      text-align: left;
+      color: var(--ink-soft);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      font-weight: 800;
+      padding: 11px 16px;
+      background: var(--card-soft);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .report-table td {
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--ink);
+      vertical-align: middle;
+    }
+
+    .report-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .report-table tr:hover {
+      background: rgba(251, 247, 238, 0.55);
+    }
+
+    .text-right {
+      text-align: right !important;
+    }
+
+    .text-center {
+      text-align: center !important;
+    }
+
+    .nowrap {
+      white-space: nowrap;
+    }
+
+    /* Category breakdown styling */
+    .cat-name-cell {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-weight: 700;
+    }
+
+    .cat-color-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: inline-block;
+    }
+
+    .cat-bar-cell {
+      width: 25%;
+      min-width: 80px;
+    }
+
+    .progress-track {
+      background: var(--border-subtle);
+      border-radius: var(--radius-pill);
+      height: 7px;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: var(--radius-pill);
+    }
+
+    /* Badges & Status Pills */
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+    }
+
+    .pill.income {
+      background: var(--income-bg);
+      color: var(--income);
+      border: 1px solid rgba(46, 158, 110, 0.25);
+    }
+
+    .pill.expense {
+      background: var(--expense-bg);
+      color: var(--expense);
+      border: 1px solid rgba(196, 107, 72, 0.25);
+    }
+
+    .rank-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--card-soft);
+      border: 1px solid var(--border);
+      font-size: 10.5px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .rank-pill.top {
+      background: var(--pink);
+      border-color: #E5A39E;
+      color: #7A284D;
+    }
+
+    .amt {
+      font-weight: 800;
+      letter-spacing: -0.2px;
+    }
+
+    .amt.income { color: var(--income); }
+    .amt.expense { color: var(--expense); }
+
+    /* Budget Status colors */
+    .budget-ok { background: var(--income); }
+    .budget-warn { background: #F59E0B; }
+    .budget-over { background: var(--warn); }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10.5px;
+      font-weight: 800;
+      padding: 2.5px 8px;
+      border-radius: 4px;
+    }
+
+    .status-badge.ok { background: var(--income-bg); color: var(--income); }
+    .status-badge.warn { background: #FEF3C7; color: #B45309; }
+    .status-badge.over { background: var(--warn-bg); color: var(--warn); }
+
+    /* Empty states */
+    .empty-state {
+      padding: 34px 20px;
+      text-align: center;
+      color: var(--ink-soft);
+      font-size: 13px;
+      background: var(--card-soft);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+    }
+
+    .truncated-info {
+      font-size: 11.5px;
+      color: var(--ink-soft);
+      margin-top: 10px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    /* ==========================================================================
+       10. Footer & Verification Sign-Off
+       ========================================================================== */
+    .report-footer {
+      margin-top: 38px;
+      padding-top: 20px;
+      border-top: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+      font-size: 11.5px;
+      color: var(--ink-soft);
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .footer-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      background: var(--card-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .footer-badge svg {
+      color: var(--income);
+    }
+
+    .footer-right {
+      text-align: right;
+      font-weight: 500;
+    }
+
+    /* ==========================================================================
+       11. Print Stylesheet
+       ========================================================================== */
+    @media print {
+      body {
+        background: #FFFFFF !important;
+        color: #000000 !important;
+        font-size: 11.5px !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .no-print, .screen-toolbar {
+        display: none !important;
+      }
+
+      .page-wrapper {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      .report-sheet {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+      }
+
+      .kpi-card {
+        box-shadow: none !important;
+        border: 1px solid #D1D5DB !important;
+        padding: 12px !important;
+      }
+
+      .chart-panel {
+        box-shadow: none !important;
+        border: 1px solid #D1D5DB !important;
+      }
+
+      .report-section {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+
+      .report-table th {
+        background: #F3F4F6 !important;
+        color: #374151 !important;
+      }
+
+      .report-table td {
+        padding: 8px 10px !important;
+      }
+    }
+
+    /* ==========================================================================
+       12. Responsive Adjustments
+       ========================================================================== */
+    @media (max-width: 1024px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-panel.full-width {
+        grid-column: auto;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .screen-toolbar {
+        padding: 10px 16px;
+      }
+
+      .toolbar-container {
+        flex-wrap: wrap;
+      }
+
+      .page-wrapper {
+        padding: 16px 12px 40px;
+      }
+
+      .report-sheet {
+        padding: 22px 16px;
+        border-radius: var(--radius-md);
+      }
+
+      .report-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .header-meta-card {
+        width: 100%;
+        text-align: left;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Screen Toolbar: Navigation & Export Actions (Hidden on Print / PDF) -->
+  <aside class="screen-toolbar no-print">
+    <div class="toolbar-container">
+      <button type="button" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href = '{% url 'reportsHome' %}'; }" class="toolbar-back" title="Return to previous screen">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span>Back to Reports</span>
+      </button>
+
+      <div class="toolbar-center">
+        <span>Report Document:</span>
+        <span class="toolbar-period-badge">{{ data.period.label }}</span>
+      </div>
+
+      <div class="toolbar-actions">
+        <button type="button" onclick="window.print()" class="btn-print">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+            <rect x="6" y="14" width="12" height="8"></rect>
+          </svg>
+          <span>Print / Save as PDF</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Report Document Wrapper (Full-Page width matching app pages) -->
+  <div class="page-wrapper">
+    <article class="report-sheet">
+
+      <!-- ── 1. Document Header ──────────────────────────────────────── -->
+      <header class="report-header">
+        <div>
+          <div class="header-brand-wrap">
+            <div class="brand-emblem" aria-label="Finance Manager Logo">
+              <!-- Fintech Vector Logo Mark -->
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M12 7v10"></path>
+                <path d="M15 9.5c-.8-.9-1.8-1.5-3-1.5-2.2 0-3.5 1.3-3.5 2.8 0 3.2 6.5 1.8 6.5 5.2 0 1.6-1.4 2.8-3.5 2.8-1.3 0-2.4-.6-3.2-1.6"></path>
+              </svg>
+            </div>
+            <div class="brand-title">Finance <span>Manager</span></div>
+          </div>
+          <div class="doc-type-tag">Financial Statement & Audit Report</div>
+          <h1 class="report-main-title">Financial Report</h1>
+          <div class="report-period-tag">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <span>{{ data.period.label }}</span>
+          </div>
+        </div>
+
+        <div class="header-meta-card">
+          <div class="meta-user-pill">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span>{{ username }}</span>
+          </div>
+          <div class="meta-item">
+            <strong>Scope:</strong> {{ data.period.start }} – {{ data.period.end }}
+          </div>
+          <div class="meta-item">
+            <strong>Generated:</strong> {{ data.generated_at }}
+          </div>
+          <div class="meta-item">
+            <strong>Status:</strong> Verified Records
+          </div>
+        </div>
+      </header>
+
+      <!-- ── 2. Executive KPI Cards ──────────────────────────────────── -->
+      <section class="report-section" aria-label="Executive Financial Summary">
+        <div class="kpi-grid">
+          
+          <!-- Income Card -->
+          <div class="kpi-card income">
+            <div>
+              <div class="kpi-top-row">
+                <span class="kpi-label">Total Inflow</span>
+                <span class="kpi-icon-pill" style="color: var(--income);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="7" y1="17" x2="17" y2="7"></line>
+                    <polyline points="7 7 17 7 17 17"></polyline>
+                  </svg>
+                </span>
+              </div>
+              <div class="kpi-value">₹{{ data.total_income|floatformat:2 }}</div>
+            </div>
+            <div class="kpi-subtext">
+              {% if data.previous.total_income %}
+                {% with prev=data.previous.total_income curr=data.total_income %}
+                  {% if curr > prev %}
+                    <span class="kpi-delta down">
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                      vs {{ data.previous.label }}
+                    </span>
+                  {% elif curr < prev %}
+                    <span class="kpi-delta up">
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                      vs {{ data.previous.label }}
+                    </span>
+                  {% else %}
+                    <span class="kpi-delta neutral">= vs {{ data.previous.label }}</span>
+                  {% endif %}
+                {% endwith %}
+              {% else %}
+                <span>Total earned this period</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Expense Card -->
+          <div class="kpi-card expense">
+            <div>
+              <div class="kpi-top-row">
+                <span class="kpi-label">Total Outflow</span>
+                <span class="kpi-icon-pill" style="color: var(--expense);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="7" y1="7" x2="17" y2="17"></line>
+                    <polyline points="17 7 17 17 7 17"></polyline>
+                  </svg>
+                </span>
+              </div>
+              <div class="kpi-value">₹{{ data.total_expense|floatformat:2 }}</div>
+            </div>
+            <div class="kpi-subtext">
+              {% if data.previous.total_expense %}
+                {% with prev=data.previous.total_expense curr=data.total_expense %}
+                  {% if curr > prev %}
+                    <span class="kpi-delta up">
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                      vs {{ data.previous.label }}
+                    </span>
+                  {% elif curr < prev %}
+                    <span class="kpi-delta down">
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                      vs {{ data.previous.label }}
+                    </span>
+                  {% else %}
+                    <span class="kpi-delta neutral">= vs {{ data.previous.label }}</span>
+                  {% endif %}
+                {% endwith %}
+              {% else %}
+                <span>Total spent this period</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Net Balance Card -->
+          <div class="kpi-card balance">
+            <div>
+              <div class="kpi-top-row">
+                <span class="kpi-label">Net Balance</span>
+                <span class="kpi-icon-pill" style="color: var(--balance);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                    <circle cx="12" cy="12" r="2"></circle>
+                  </svg>
+                </span>
+              </div>
+              <div class="kpi-value">₹{{ data.balance|floatformat:2 }}</div>
+            </div>
+            <div class="kpi-subtext">
+              {% if data.previous.balance is not None %}
+                {% with prev=data.previous.balance curr=data.balance %}
+                  {% if curr > prev %}
+                    <span class="kpi-delta down">
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                      vs {{ data.previous.label }}
+                    </span>
+                  {% elif curr < prev %}
+                    <span class="kpi-delta up">
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                      vs {{ data.previous.label }}
+                    </span>
+                  {% else %}
+                    <span class="kpi-delta neutral">= vs {{ data.previous.label }}</span>
+                  {% endif %}
+                {% endwith %}
+              {% else %}
+                <span>Net retained capital</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Savings Rate Card -->
+          <div class="kpi-card savings">
+            <div>
+              <div class="kpi-top-row">
+                <span class="kpi-label">Savings Rate</span>
+                <span class="kpi-icon-pill" style="color: var(--pink-deep);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="5" x2="5" y2="19"></line>
+                    <circle cx="6.5" cy="6.5" r="2.5"></circle>
+                    <circle cx="17.5" cy="17.5" r="2.5"></circle>
+                  </svg>
+                </span>
+              </div>
+              <div class="kpi-value">
+                {% if data.savings_rate is not None %}{{ data.savings_rate }}%{% else %}—{% endif %}
+              </div>
+            </div>
+            <div class="kpi-subtext">
+              {% if data.previous.savings_rate is not None and data.savings_rate is not None %}
+                {% with prev=data.previous.savings_rate curr=data.savings_rate %}
+                  {% if curr > prev %}
+                    <span class="kpi-delta down">
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                      vs {{ data.previous.label }}
+                    </span>
+                  {% elif curr < prev %}
+                    <span class="kpi-delta up">
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                      vs {{ data.previous.label }}
+                    </span>
+                  {% else %}
+                    <span class="kpi-delta neutral">= vs {{ data.previous.label }}</span>
+                  {% endif %}
+                {% endwith %}
+              {% else %}
+                <span>Ratio of savings to income</span>
+              {% endif %}
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ── 3. Key Insights & Analytics Notes ──────────────────────── -->
+      {% if insights %}
+      <section class="report-section" aria-label="Key Insights">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon-wrap">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2v2"></path>
+                <path d="M12 20v2"></path>
+                <path d="m4.93 4.93 1.41 1.41"></path>
+                <path d="m17.66 17.66 1.41 1.41"></path>
+                <path d="M2 12h2"></path>
+                <path d="M20 12h2"></path>
+                <path d="m6.34 17.66-1.41 1.41"></path>
+                <path d="m19.07 4.93-1.41 1.41"></path>
+                <circle cx="12" cy="12" r="4"></circle>
+              </svg>
+            </span>
+            <span>Key Financial Insights & Observations</span>
+          </div>
+          <span class="section-badge">{{ insights|length }} Note{{ insights|length|pluralize }}</span>
+        </div>
+        <div class="insights-deck">
+          {% for insight in insights %}
+          <div class="insight-item {{ insight.level }}">
+            <div class="insight-icon">
+              {% if insight.level == 'warn' %}
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                  <line x1="12" y1="9" x2="12" y2="13"></line>
+                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+              {% elif insight.level == 'good' %}
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+              {% else %}
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+              {% endif %}
+            </div>
+            <div class="insight-content">{{ insight.text }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+
+      <!-- ── 4. Visual Analytics & Charts ────────────────────────────── -->
+      <section class="report-section" aria-label="Visual Analytics">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon-wrap">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+              </svg>
+            </span>
+            <span>Visual Performance & Allocation</span>
+          </div>
+        </div>
+
+        <div class="charts-grid">
+          
+          <!-- Cash Flow Trend (Bar Chart SVG) -->
+          <div class="chart-panel full-width">
+            <div class="chart-panel-head">
+              <div class="chart-panel-title">Income vs. Expense Progression</div>
+              <div class="chart-panel-subtitle">Periodic distribution of capital inflows against outflows</div>
+            </div>
+            <div class="chart-svg-wrap">
+              {{ bar_chart_svg|safe }}
+            </div>
+          </div>
+
+          <!-- Category Donut Chart SVG -->
+          <div class="chart-panel">
+            <div class="chart-panel-head">
+              <div class="chart-panel-title">Spending by Category</div>
+              <div class="chart-panel-subtitle">Proportional breakdown of total expenses</div>
+            </div>
+            {% if data.by_category %}
+              <div class="chart-svg-wrap">
+                {{ donut_chart_svg|safe }}
+              </div>
+            {% else %}
+              <div class="empty-state">No expense records found for this period.</div>
+            {% endif %}
+          </div>
+
+          <!-- Category Breakdown Table -->
+          <div class="chart-panel">
+            <div class="chart-panel-head">
+              <div class="chart-panel-title">Category Outlay Details</div>
+              <div class="chart-panel-subtitle">Itemized volume and percentage share</div>
+            </div>
+
+            {% if data.by_category %}
+            <div class="table-container" style="border: none;">
+              <table class="report-table">
+                <thead>
+                  <tr>
+                    <th>Category</th>
+                    <th class="text-right">Amount</th>
+                    <th class="text-right">% Share</th>
+                    <th class="cat-bar-cell">Share</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for cat in data.by_category %}
+                  <tr>
+                    <td>
+                      <div class="cat-name-cell">
+                        <span class="cat-color-dot" style="background: {{ cat.color }};"></span>
+                        <span>{{ cat.category }}</span>
+                      </div>
+                    </td>
+                    <td class="text-right nowrap amt">₹{{ cat.total|floatformat:2 }}</td>
+                    <td class="text-right nowrap" style="font-weight: 700;">{{ cat.pct }}%</td>
+                    <td class="cat-bar-cell">
+                      <div class="progress-track">
+                        <div class="progress-fill" style="width: {{ cat.pct }}%; background: {{ cat.color }};"></div>
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+            <div class="empty-state">No category distribution data available.</div>
+            {% endif %}
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ── 5. Budget vs Actual Compliance ──────────────────────────── -->
+      {% if data.budget_status %}
+      <section class="report-section" aria-label="Budget Compliance">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon-wrap">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <circle cx="12" cy="12" r="6"></circle>
+                <circle cx="12" cy="12" r="2"></circle>
+              </svg>
+            </span>
+            <span>Budget Compliance & Variance</span>
+          </div>
+          <span class="section-badge">Tracking {{ data.budget_status|length }} Categor{{ data.budget_status|length|pluralize:"y,ies" }}</span>
+        </div>
+
+        <div class="table-container">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Target Month</th>
+                <th class="text-right">Budget Limit</th>
+                <th class="text-right">Actual Spent</th>
+                <th>Capacity Used</th>
+                <th class="text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for b in data.budget_status %}
+              <tr>
+                <td style="font-weight: 700;">{{ b.category }}</td>
+                <td style="color: var(--ink-soft);">{{ b.month|date:"M Y" }}</td>
+                <td class="text-right nowrap" style="font-weight: 600;">₹{{ b.limit|floatformat:2 }}</td>
+                <td class="text-right nowrap amt {% if b.pct > 100 %}expense{% endif %}">₹{{ b.spent|floatformat:2 }}</td>
+                <td>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <div class="progress-track" style="flex: 1; min-width: 60px;">
+                      <div class="progress-fill {% if b.pct > 100 %}budget-over{% elif b.pct >= 80 %}budget-warn{% else %}budget-ok{% endif %}"
+                           style="width: {% if b.pct > 100 %}100{% else %}{{ b.pct|floatformat:0 }}{% endif %}%;"></div>
+                    </div>
+                    <span style="font-size: 11px; font-weight: 700; min-width: 38px; text-align: right;">{{ b.pct }}%</span>
+                  </div>
+                </td>
+                <td class="text-center nowrap">
+                  {% if b.pct > 100 %}
+                    <span class="status-badge over">Over Budget</span>
+                  {% elif b.pct >= 80 %}
+                    <span class="status-badge warn">Near Limit</span>
+                  {% else %}
+                    <span class="status-badge ok">On Track</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      {% endif %}
+
+      <!-- ── 6. Capital Outflows (Expenses) ───────────────────────────── -->
+      {% if data.top_expenses %}
+      <section class="report-section" aria-label="Top Outflows">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon-wrap" style="color: var(--expense);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="7" y1="7" x2="17" y2="17"></line>
+                <polyline points="17 7 17 17 7 17"></polyline>
+              </svg>
+            </span>
+            <span>Capital Outflows & Major Expenses</span>
+          </div>
+          <span class="section-badge">Top 5 Outflow Records</span>
+        </div>
+
+        <div class="table-container">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th style="width: 44px;" class="text-center">#</th>
+                <th>Date</th>
+                <th>Expense Item / Purpose</th>
+                <th>Category</th>
+                <th class="text-right">Amount Outflow</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for exp in data.top_expenses %}
+              <tr>
+                <td class="text-center">
+                  <span class="rank-pill {% if forloop.first %}top{% endif %}">{{ forloop.counter }}</span>
+                </td>
+                <td class="nowrap" style="color: var(--ink-soft);">{{ exp.date }}</td>
+                <td style="font-weight: 700;">{{ exp.item_name|default:"—" }}</td>
+                <td>
+                  <span class="pill expense">{{ exp.category }}</span>
+                </td>
+                <td class="text-right nowrap amt expense">-₹{{ exp.amount|floatformat:2 }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      {% endif %}
+
+      <!-- ── 7. Capital Inflows (Income Streams & Inflows) ─────────────── -->
+      {% if data.income_by_category or data.total_income %}
+      <section class="report-section" aria-label="Capital Inflows">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon-wrap" style="color: var(--income);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="7" y1="17" x2="17" y2="7"></line>
+                <polyline points="7 7 17 7 17 17"></polyline>
+              </svg>
+            </span>
+            <span>Capital Inflows & Income Streams</span>
+          </div>
+          <span class="section-badge" style="background: var(--income-bg); color: var(--income); border-color: rgba(46, 158, 110, 0.25);">
+            Total Inflow: +₹{{ data.total_income|floatformat:2 }}
+          </span>
+        </div>
+
+        {% if data.income_by_category %}
+        <div class="table-container">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th style="width: 44px;" class="text-center">#</th>
+                <th>Income Stream / Source</th>
+                <th class="text-right">Inflow Volume</th>
+                <th class="text-right">% Share</th>
+                <th class="cat-bar-cell">Relative Contribution</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for inc in data.income_by_category %}
+              <tr>
+                <td class="text-center">
+                  <span class="rank-pill" style="background: var(--income-bg); color: var(--income); border-color: rgba(46, 158, 110, 0.25);">{{ forloop.counter }}</span>
+                </td>
+                <td>
+                  <div class="cat-name-cell">
+                    <span class="cat-color-dot" style="background: var(--income);"></span>
+                    <span>{{ inc.category }}</span>
+                  </div>
+                </td>
+                <td class="text-right nowrap amt income">+₹{{ inc.total|floatformat:2 }}</td>
+                <td class="text-right nowrap" style="font-weight: 700;">{{ inc.pct }}%</td>
+                <td class="cat-bar-cell">
+                  <div class="progress-track">
+                    <div class="progress-fill" style="width: {{ inc.pct }}%; background: var(--income);"></div>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="empty-state">No capital inflow streams recorded for this period.</div>
+        {% endif %}
+      </section>
+      {% endif %}
+
+      <!-- ── 8. Detailed Transaction Ledger ───────────────────────────── -->
+      <section class="report-section" aria-label="Transaction Ledger">
+        <div class="section-header">
+          <div class="section-title">
+            <span class="section-icon-wrap">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+            </span>
+            <span>Transaction Ledger & Audit Log</span>
+          </div>
+          <span class="section-badge">
+            {% if data.transactions %}
+              {{ data.transactions|length }} record{{ data.transactions|length|pluralize }}
+            {% else %}
+              0 records
+            {% endif %}
+          </span>
+        </div>
+
+        {% if data.transactions %}
+        <div class="table-container">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Record Details</th>
+                <th>Notes / Narrative</th>
+                <th class="text-right">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for tx in data.transactions %}
+              <tr>
+                <td class="nowrap" style="color: var(--ink-soft);">{{ tx.date }}</td>
+                <td class="nowrap">
+                  <span class="pill {{ tx.type }}">{{ tx.type|capfirst }}</span>
+                </td>
+                <td style="font-weight: 700;">{{ tx.record|default:"—" }}</td>
+                <td style="color: var(--ink-soft); font-size: 12px; max-width: 320px;">
+                  {{ tx.description|default:"—"|truncatechars:75 }}
+                </td>
+                <td class="text-right nowrap amt {{ tx.type }}">
+                  {% if tx.type == 'income' %}+{% else %}-{% endif %}₹{{ tx.amount|floatformat:2 }}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        {% if data.transactions_total > 100 %}
+        <p class="truncated-info">
+          Displaying most recent 100 transactions of {{ data.transactions_total }} recorded in this scope.
+        </p>
+        {% endif %}
+
+        {% else %}
+        <div class="empty-state">
+          No transactions registered for the selected date range.
+        </div>
+        {% endif %}
+      </section>
+
+      <!-- ── 9. Verification & Document Footer ──────────────────────── -->
+      <footer class="report-footer">
+        <div class="footer-left">
+          <span class="footer-badge">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              <polyline points="9 12 11 14 15 10"></polyline>
+            </svg>
+            System Verified
+          </span>
+          <span>Finance Manager Enterprise Edition</span>
+        </div>
+        <div class="footer-right">
+          <span>Prepared for <strong>{{ username }}</strong></span> ·
+          <span>Generated {{ data.generated_at }}</span>
+        </div>
+      </footer>
+
+    </article>
+  </div>
+
+</body>
+</html>

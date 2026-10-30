@@ -1,0 +1,420 @@
+{% extends 'Homepage.html' %}
+{% load static %}
+{% block title %}Reports | Finance Manager{% endblock %}
+
+{% block content %}
+<style>
+.reports-page { width: 100%; max-width: 1200px; margin: 0 auto; }
+.reports-intro { margin-bottom: 28px; }
+.reports-eyebrow { color: #f89fc0; font-size: 11px; font-weight: 800; letter-spacing: 1px; margin-bottom: 4px; }
+.reports-intro h1 { font-size: clamp(24px,3vw,34px); font-weight: 800; letter-spacing: -0.7px; margin: 4px 0 8px; }
+.reports-intro p { color: #837C70; font-size: 13px; max-width: 600px; }
+
+/* ── Sections ─────────────────────────────────────── */
+.reports-layout { display: flex; flex-direction: column; gap: 26px; }
+
+.reports-section {
+  background: #fff;
+  border: 1px solid #EDE6D6;
+  border-radius: 22px;
+  padding: 30px 34px;
+  box-shadow: 0 8px 26px rgba(40,35,25,.045);
+}
+
+.reports-section-title {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  margin-bottom: 5px;
+}
+.reports-section-sub { font-size: 13px; color: #837C70; margin-bottom: 20px; }
+
+/* ── Report type tabs ────────────────────────────── */
+.type-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.type-tab {
+  padding: 9px 20px;
+  border: 1px solid #EDE6D6;
+  border-radius: 50px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  background: #faf8f4;
+  color: #837C70;
+  transition: all .18s;
+}
+.type-tab.active, .type-tab:hover {
+  background: #e5a39e;
+  color: #fff;
+  border-color: #e5a39e;
+}
+
+/* ── Input panels ─────────────────────────────────── */
+.input-panel { display: none; }
+.input-panel.active { display: block; }
+
+.report-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px 18px;
+  align-items: end;
+  margin-bottom: 18px;
+}
+
+.rform-field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #837C70;
+  margin-bottom: 6px;
+}
+.rform-field input[type="month"],
+.rform-field input[type="number"],
+.rform-field input[type="date"],
+.rform-field select {
+  width: 100%;
+  background: #faf8f4;
+  border: 1px solid #EDE6D6;
+  border-radius: 10px;
+  color: #1B1A17;
+  font-family: inherit;
+  font-size: 13px;
+  padding: 10px 13px;
+  outline: none;
+  transition: border-color .18s;
+}
+.rform-field input:focus,
+.rform-field select:focus { border-color: #f89fc0; }
+
+.report-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.btn-preview, .btn-pdf {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 22px;
+  border: none;
+  border-radius: 11px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .18s, background .18s;
+  text-decoration: none;
+}
+.btn-preview {
+  background: #e5a39e;
+  color: #fff;
+}
+.btn-preview:hover { background: #d58b86; transform: translateY(-1px); }
+.btn-pdf {
+  background: #1B1A17;
+  color: #fff;
+}
+.btn-pdf:hover { background: #000; transform: translateY(-1px); }
+
+/* Flash messages */
+.reports-message {
+  background: #fff3ee;
+  border-left: 3px solid #E2645B;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #c46b48;
+  margin-bottom: 14px;
+}
+
+/* ── Export data card ─────────────────────────────── */
+.export-two-col {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 22px;
+}
+.export-sub-card {
+  background: #faf8f4;
+  border: 1px solid #EDE6D6;
+  border-radius: 16px;
+  padding: 22px;
+}
+.export-sub-card h3 { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+.export-sub-card > p { font-size: 12px; color: #837C70; margin-bottom: 0; }
+
+@media (max-width: 700px) {
+  .reports-section { padding: 20px 18px; }
+  .report-actions { flex-direction: column; }
+  .btn-preview, .btn-pdf { justify-content: center; }
+}
+</style>
+
+<div class="reports-page">
+
+  <div class="reports-intro">
+    <div class="reports-eyebrow">YOUR FINANCES, IN FOCUS</div>
+    <h1>Reports</h1>
+    <p>Generate intelligent financial reports or download a raw export of your transaction history.</p>
+  </div>
+
+  {% if message %}
+  <div class="reports-message">{{ message }}</div>
+  {% endif %}
+
+  <div class="reports-layout">
+
+    <!-- ══ Section 1: Generate report ═══════════════════════════════ -->
+    <section class="reports-section" aria-labelledby="gen-report-heading">
+      <div class="reports-section-title" id="gen-report-heading">Generate report</div>
+      <div class="reports-section-sub">Choose a report type and period, then preview in the browser or download as PDF.</div>
+
+      <!-- Type tabs -->
+      <div class="type-tabs" role="tablist">
+        <button class="type-tab active" role="tab" data-panel="panel-monthly" id="tab-monthly">Monthly</button>
+        <button class="type-tab" role="tab" data-panel="panel-yearly" id="tab-yearly">Yearly</button>
+        <button class="type-tab" role="tab" data-panel="panel-custom" id="tab-custom">Custom range</button>
+      </div>
+
+      <!-- Monthly panel -->
+      <div id="panel-monthly" class="input-panel active" role="tabpanel">
+        <form id="form-monthly" class="report-form-grid">
+          <div class="rform-field">
+            <label for="monthly-month">Month</label>
+            <input type="month" id="monthly-month" name="month" value="{{ current_month }}">
+          </div>
+        </form>
+        <div class="report-actions">
+          <button type="button" class="btn-preview" onclick="openReport('monthly')">👁 Preview</button>
+          <button type="button" class="btn-pdf" onclick="downloadPdf('monthly')">⬇ Download PDF</button>
+        </div>
+      </div>
+
+      <!-- Yearly panel -->
+      <div id="panel-yearly" class="input-panel" role="tabpanel">
+        <form id="form-yearly" class="report-form-grid">
+          <div class="rform-field">
+            <label for="yearly-year">Year</label>
+            <select id="yearly-year" name="year">
+              {% for y in years %}
+              <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </form>
+        <div class="report-actions">
+          <button type="button" class="btn-preview" onclick="openReport('yearly')">👁 Preview</button>
+          <button type="button" class="btn-pdf" onclick="downloadPdf('yearly')">⬇ Download PDF</button>
+        </div>
+      </div>
+
+      <!-- Custom panel -->
+      <div id="panel-custom" class="input-panel" role="tabpanel">
+        <form id="form-custom" class="report-form-grid">
+          <div class="rform-field">
+            <label for="custom-from">From date</label>
+            <input type="date" id="custom-from" name="from_date">
+          </div>
+          <div class="rform-field">
+            <label for="custom-to">To date</label>
+            <input type="date" id="custom-to" name="to_date">
+          </div>
+        </form>
+        <div class="report-actions">
+          <button type="button" class="btn-preview" onclick="openReport('custom')">👁 Preview</button>
+          <button type="button" class="btn-pdf" onclick="downloadPdf('custom')">⬇ Download PDF</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ Section 2: Export data ════════════════════════════════════ -->
+    <section class="reports-section" aria-labelledby="export-data-heading">
+      <div class="reports-section-title" id="export-data-heading">Export data</div>
+      <div class="reports-section-sub">Download a raw copy of your transaction history or create a temporary live link.</div>
+
+      <div class="export-two-col">
+
+        <!-- Download file sub-card -->
+        <div class="export-sub-card">
+          <h3>Download a file</h3>
+          <p>Choose a format and filename for your transaction history.</p>
+          <form method="get" action="{% url 'reportsHome' %}" class="export-form">
+            <label for="export-filename">File name</label>
+            <input
+              type="text"
+              id="export-filename"
+              name="filename"
+              value="transactions"
+              maxlength="80"
+              pattern="[A-Za-z0-9 _-]+"
+              title="Use letters, numbers, spaces, hyphens, or underscores."
+              required
+            >
+            <label for="export-format">File format</label>
+            <select id="export-format" name="export_dropdown">
+              <option value="csv">CSV — spreadsheet compatible</option>
+              <option value="xlsx">Excel workbook (.xlsx)</option>
+              <option value="json">JSON — structured data</option>
+            </select>
+            <button type="submit" class="btn-primary export-submit">Download transactions</button>
+          </form>
+          <p class="export-note">Your download contains only your own transaction logs.</p>
+        </div>
+
+        <!-- Live link sub-card -->
+        <div class="export-sub-card export-live-card">
+          <h3>Temporary live link</h3>
+          <p>Share a read-only link to your transaction data. Anyone with the link can view it until it expires or you revoke it.</p>
+          <form id="live-link-form" method="post" action="{% url 'generateLiveLink' %}" class="export-form">
+            {% csrf_token %}
+            <label for="link-ttl">Link expires after</label>
+            <select id="link-ttl" name="ttl">
+              <option value="1h">1 hour</option>
+              <option value="24h">24 hours</option>
+              <option value="7d">7 days</option>
+              <option value="30d">30 days</option>
+            </select>
+            <button type="submit" class="btn-primary export-submit">Generate live link</button>
+          </form>
+
+          <div id="live-link-result" class="live-link-result" hidden>
+            <label for="live-link-url">Your live link</label>
+            <div class="live-link-controls">
+              <input type="url" id="live-link-url" readonly>
+              <button type="button" id="copy-live-link" class="btn-secondary">Copy</button>
+            </div>
+            <p id="live-link-expiry" class="export-note"></p>
+          </div>
+
+          <form id="revoke-link-form" method="post" action="{% url 'revokeLiveLink' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-danger" {% if not live_link_active %}disabled{% endif %}>Revoke live link</button>
+          </form>
+          <p id="live-link-status" class="export-status" role="status" aria-live="polite"></p>
+        </div>
+
+      </div>
+    </section>
+
+  </div><!-- /.reports-layout -->
+</div><!-- /.reports-page -->
+
+<div class="decorative-svg place-bottom place-left">
+  <img src="{% static 'messy.svg' %}" alt="">
+</div>
+<div class="decorative-svg place-bottom place-right">
+  <img src="{% static 'chill_person.svg' %}" alt="">
+</div>
+
+<script>
+// ── Tab switching ──────────────────────────────────────────────────
+const tabs = document.querySelectorAll('.type-tab');
+const panels = document.querySelectorAll('.input-panel');
+
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    panels.forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.panel).classList.add('active');
+  });
+});
+
+// ── Report helpers ─────────────────────────────────────────────────
+function buildParams(type) {
+  const params = new URLSearchParams({ type });
+  if (type === 'monthly') {
+    const val = document.getElementById('monthly-month').value;
+    if (!val) { alert('Please select a month.'); return null; }
+    params.set('month', val);
+  } else if (type === 'yearly') {
+    params.set('year', document.getElementById('yearly-year').value);
+  } else {
+    const from = document.getElementById('custom-from').value;
+    const to = document.getElementById('custom-to').value;
+    if (!from || !to) { alert('Please select both dates.'); return null; }
+    params.set('from_date', from);
+    params.set('to_date', to);
+  }
+  return params;
+}
+
+function openReport(type) {
+  const params = buildParams(type);
+  if (!params) return;
+  window.open('/reports/preview/?' + params.toString(), '_blank');
+}
+
+function downloadPdf(type) {
+  const params = buildParams(type);
+  if (!params) return;
+  window.location.href = '/reports/pdf/?' + params.toString();
+}
+
+// ── Live link JS (identical behaviour to old ExportArea) ──────────
+const liveLinkForm = document.getElementById('live-link-form');
+const revokeLinkForm = document.getElementById('revoke-link-form');
+const liveLinkStatus = document.getElementById('live-link-status');
+const liveLinkResult = document.getElementById('live-link-result');
+const liveLinkUrl = document.getElementById('live-link-url');
+const liveLinkExpiry = document.getElementById('live-link-expiry');
+const revokeLinkButton = revokeLinkForm.querySelector('button');
+
+async function postForm(form) {
+  const response = await fetch(form.action, {
+    method: 'POST',
+    body: new FormData(form),
+    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    credentials: 'same-origin'
+  });
+  if (!response.headers.get('content-type')?.includes('application/json')) {
+    throw new Error('The request failed. Please sign in again and retry.');
+  }
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error || 'The request could not be completed.');
+  return result;
+}
+
+liveLinkForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  liveLinkStatus.textContent = 'Generating your link…';
+  liveLinkResult.hidden = true;
+  try {
+    const result = await postForm(liveLinkForm);
+    liveLinkUrl.value = result.url;
+    liveLinkExpiry.textContent = `This link expires ${new Date(result.expires_at * 1000).toLocaleString()}.`;
+    liveLinkResult.hidden = false;
+    revokeLinkButton.disabled = false;
+    liveLinkStatus.textContent = 'Live link created. Copy it now; it will not be shown again after leaving this page.';
+  } catch (error) {
+    liveLinkStatus.textContent = error.message;
+  }
+});
+
+revokeLinkForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  liveLinkStatus.textContent = 'Revoking your live link…';
+  try {
+    await postForm(revokeLinkForm);
+    liveLinkResult.hidden = true;
+    liveLinkUrl.value = '';
+    revokeLinkButton.disabled = true;
+    liveLinkStatus.textContent = 'Live link revoked.';
+  } catch (error) {
+    liveLinkStatus.textContent = error.message;
+  }
+});
+
+document.getElementById('copy-live-link').addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(liveLinkUrl.value);
+    liveLinkStatus.textContent = 'Link copied to clipboard.';
+  } catch {
+    liveLinkUrl.select();
+    liveLinkStatus.textContent = 'Clipboard access failed. Select and copy the link manually.';
+  }
+});
+</script>
+{% endblock %}
