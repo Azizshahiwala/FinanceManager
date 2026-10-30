@@ -4,6 +4,7 @@
 *.mp4
 *.gif
 *.zip
+*.md
 __pycache__
 migrations
 backup.txt
