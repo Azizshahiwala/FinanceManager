@@ -11,7 +11,6 @@ class TransactionForm(forms.ModelForm):
         fields = ['date', 'record', 'description']
         # 'type' and 'user' are set in the view.
 
-
 class PositiveAmountMixin:
     def clean_amount(self):
         amount = self.cleaned_data.get('amount')
@@ -86,3 +85,18 @@ class RegistrationForm(UserCreationForm):
             user.save()
 
         return user
+
+from django import forms
+from Finance.models import Profile
+
+class MonthlyBudgetForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['monthly_budget']
+        labels = {'monthly_budget': 'Monthly budget'}
+
+    def clean_monthly_budget(self):
+        amount = self.cleaned_data.get('monthly_budget')
+        if amount is None or amount <= 0:
+            raise forms.ValidationError('Enter an amount greater than 0.')
+        return amount

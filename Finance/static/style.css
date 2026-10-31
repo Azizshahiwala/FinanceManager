@@ -1326,3 +1326,18 @@ form textarea:focus {
     position: relative;
     left: -50%;
 }
+
+.user-menu { position: relative; }
+.user-circle { width: 38px; height: 38px; border-radius: 50%; border: 0; background: #F3AFC9; font-weight: 800; cursor: pointer; }
+.user-dropdown { position: absolute; right: 0; top: 46px; min-width: 220px; background: #fff; border: 1px solid #e7ece5; border-radius: 14px; padding: 14px; box-shadow: 0 8px 24px rgba(33,54,35,.12); z-index: 50; }
+.user-dropdown[hidden] { display: none; }
+.user-dropdown-name { font-weight: 800; margin: 0; }
+.user-dropdown-email { font-size: 12px; color: #788078; margin: 2px 0 10px; }
+.user-dropdown a { display: block; padding: 9px 6px; color: inherit; text-decoration: none; border-radius: 8px; }
+.user-dropdown a:hover { background: #f7faf5; }
+
+.budget-filter { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; }
+.budget-filter select { padding: 7px 10px; border-radius: 10px; border: 1px solid #e7ece5; }
+.budget-status { background: #edf8f2; border-left: 3px solid #2E9E6E; border-radius: 12px; padding: 12px 15px; margin-bottom: 16px; font-size: 13px; }
+.budget-status.over { background: #fff3ee; border-left-color: #E2645B; }
+.budget-msg { margin: 4px 0 0; color: #788078; }

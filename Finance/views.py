@@ -1,7 +1,8 @@
 import calendar
 from datetime import date, datetime, timedelta
 
-
+from Finance.services.budget_filter import budget_status, current_month_range
+from Finance.models import Profile
 from django.db.models.functions import ExtractMonth
 from .models import Expense, Income, Profile, TransactionLogs
 from io import BytesIO
@@ -105,6 +106,11 @@ def transaction(request):
 
     from_date = request.GET.get('from_date')
     to_date = request.GET.get('to_date')
+    budget_filter = request.GET.get('budget', 'all')   # 'all' or 'month'
+
+    if budget_filter == 'month':
+        month_start, today = current_month_range()
+        from_date, to_date = month_start, today
 
     if from_date:
         transactions = transactions.filter(date__gte=from_date)
@@ -112,8 +118,15 @@ def transaction(request):
     if to_date:
         transactions = transactions.filter(date__lte=to_date)
 
-    return render(request, 'Transaction.html', {'transactions': transactions})
+    profile, _ = Profile.objects.get_or_create(user=request.user)
 
+    return render(request, 'Transaction.html', {
+        'transactions': transactions,
+        'transaction_count': transactions.count(),
+        'budget_filter': budget_filter,
+        'budget': budget_status(request.user, profile),
+        'profile': profile,
+    })
 
 @login_required
 def expenseAdd(request):
@@ -604,12 +617,7 @@ def reportsHome(request):
             request.GET.get('filename', 'transactions').strip()
         ) or 'transactions'
         data = process_data(request.user)
-
-        if export_type == 'csv':
-            response = HttpResponse(content_type='text/csv')
-            response.write(data.to_csv(index=False))
-            filename = f'{user_filename}.csv'
-        elif export_type == 'json':
+        if export_type == 'json':
             response = HttpResponse(
                 data.to_json(orient='records'), content_type='application/json'
             )
@@ -705,3 +713,41 @@ def reportPdf(request):
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
+
+BALANCE_LIMIT=1000
+@login_required
+def budgetSetup(request):
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+
+    today = date.today()
+    all_time = build_report_data(request.user, date(2000, 1, 1), today)
+    this_month = build_report_data(request.user, today.replace(day=1), today)
+
+    balance = all_time['balance']
+    can_edit = balance < BALANCE_LIMIT
+
+    editing = request.GET.get('edit') == '1'
+    budget_is_set = profile.monthly_budget is not None
+    show_form = can_edit and (not budget_is_set or editing)
+
+    form = MonthlyBudgetForm(request.POST or None, instance=profile)
+
+    if request.method == 'POST':
+        if not show_form:
+            messages.error(request, f'You can set a budget only when your balance is below {BALANCE_LIMIT}.')
+            return redirect('budgetSetup')
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Budget saved.')
+            return redirect('budgetSetup')
+
+    return render(request, 'Budget/setup.html', {
+        'profile': profile,
+        'form': form,
+        'balance': balance,
+        'spent_this_month': this_month['total_expense'],
+        'can_edit': can_edit,
+        'show_form': show_form,
+        'budget_is_set': budget_is_set,
+        'balance_limit': BALANCE_LIMIT,
+    })

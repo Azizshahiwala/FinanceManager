@@ -9,7 +9,8 @@ class Profile(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     streaming_data = models.BooleanField(default=False, blank=False)
     streaming_token_version = models.PositiveIntegerField(default=0)
-
+    monthly_budget = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    
     def save(self, *args, **kwargs):
         if not self.username and self.user_id:
             self.username = self.user.username

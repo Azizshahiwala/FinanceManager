@@ -13,8 +13,7 @@ urlpatterns = [
     path('transaction/', views.transaction, name='transaction'),
     path('transactions/<str:transaction_type>/<int:transaction_id>/edit/', views.editTransaction, name='editTransaction'),
     path('transactions/<str:transaction_type>/<int:transaction_id>/delete/', views.deleteTransaction, name='deleteTransaction'),
-    path('update-budget/', views.updateBudget, name='updateBudget'),
-    path('expense-add/', views.expenseAdd, name='expenseAdd'),
+    path('budget/', views.budgetSetup, name='budgetSetup'),path('expense-add/', views.expenseAdd, name='expenseAdd'),
     path('income-add/', views.incomeAdd, name='incomeAdd'),
     
     path('export/live-link/', views.generateLiveLink, name='generateLiveLink'),

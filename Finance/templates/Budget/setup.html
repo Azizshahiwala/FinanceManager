@@ -1,0 +1,36 @@
+{% extends 'Homepage.html' %}
+{% block content %}
+<section class="budget-page">
+  <h1>Monthly budget</h1>
+
+  <div class="budget-summary">
+    <div>
+      <span>Balance (all time)</span>
+      <strong>{{ profile.currency }} {{ balance|floatformat:2 }}</strong>
+    </div>
+    <div>
+      <span>Spent this month</span>
+      <strong>{{ profile.currency }} {{ spent_this_month|floatformat:2 }}</strong>
+    </div>
+    <div>
+      <span>Current budget</span>
+      <strong>{% if profile.monthly_budget %}{{ profile.currency }} {{ profile.monthly_budget|floatformat:2 }}{% else %}Not set{% endif %}</strong>
+    </div>
+  </div>
+
+  {% if show_form %}
+  <form method="post" class="budget-form">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn-pill">Save budget</button>
+  </form>
+{% elif budget_is_set and can_edit %}
+  <p class="budget-lock">Budget saved. <a href="{% url 'budgetSetup' %}?edit=1" class="btn-pill ghost">Edit budget</a></p>
+{% else %}
+  <p class="budget-lock">
+    Your balance is {{ profile.currency }} {{ balance|floatformat:2 }}.
+    You can set a budget when your balance is below {{ profile.currency }} {{ balance_limit }}.
+  </p>
+{% endif %}
+</section>
+{% endblock %}

@@ -30,6 +30,35 @@
 
 </form>
 
+<form method="get" class="budget-filter">
+  <label for="budgetFilter">Show</label>
+  <select id="budgetFilter" name="budget" onchange="this.form.submit()">
+    <option value="all" {% if budget_filter == 'all' %}selected{% endif %}>All transactions</option>
+    <option value="month" {% if budget_filter == 'month' %}selected{% endif %}>This month</option>
+  </select>
+  {# keep the date filters when the budget select changes #}
+  {% if request.GET.from_date %}<input type="hidden" name="from_date" value="{{ request.GET.from_date }}">{% endif %}
+  {% if request.GET.to_date %}<input type="hidden" name="to_date" value="{{ request.GET.to_date }}">{% endif %}
+</form>
+
+{% if budget_filter == 'month' %}
+<section class="budget-status {% if budget.is_over %}over{% endif %}">
+  {% if budget.has_budget %}
+    <p>
+      Spent <strong>{{ profile.currency }} {{ budget.spent|floatformat:2 }}</strong>
+      of <strong>{{ profile.currency }} {{ budget.budget|floatformat:2 }}</strong>
+      ({{ budget.percent_used }}%)
+    </p>
+    {% if budget.is_over %}
+      <p class="budget-msg">Over budget by {{ profile.currency }} {{ budget.spent|floatformat:2 }}-{{ budget.budget|floatformat:2 }}.</p>
+    {% else %}
+      <p class="budget-msg">{{ profile.currency }} {{ budget.remaining|floatformat:2 }} left this month.</p>
+    {% endif %}
+  {% else %}
+    <p>Spent {{ profile.currency }} {{ budget.spent|floatformat:2 }} this month. <a href="{% url 'budgetSetup' %}">Set a budget</a></p>
+  {% endif %}
+</section>
+{% endif %}
 <div class="tx-table">
 
     <div class="tx-head">

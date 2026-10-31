@@ -30,8 +30,38 @@
             class="{% if request.resolver_match.url_name == 'expenseAdd' %}active{% endif %}">Add Expense</a>
           <a href="{% url 'reportsHome' %}"
             class="{% if request.resolver_match.url_name == 'reportsHome' or request.resolver_match.url_name == 'reportPreview' or request.resolver_match.url_name == 'reportPdf' or request.resolver_match.url_name == 'exportArea' %}active{% endif %}">Reports</a>
-          <a href="{% url 'logout' %}">Logout</a>
+          <!-- <a href="{% url 'logout' %}">Logout</a> -->
         </nav>
+        {% if user.is_authenticated %}
+<div class="user-menu">
+  <button type="button" class="user-circle" id="userMenuToggle" aria-expanded="false" aria-controls="userMenu">
+    {{ user.username|first|upper }}
+  </button>
+  <div class="user-dropdown" id="userMenu" hidden>
+    <p class="user-dropdown-name">{{ user.username }}</p>
+    <p class="user-dropdown-email">{{ user.email|default:"No email set" }}</p>
+    <a href="{% url 'budgetSetup' %}">Set budget</a>
+    <a href="{% url 'logout' %}">Logout</a>
+  </div>
+</div>
+{% endif %}
+
+<script>
+(function () {
+  var toggle = document.getElementById('userMenuToggle');
+  var menu = document.getElementById('userMenu');
+  if (!toggle) return;
+  toggle.addEventListener('click', function (e) {
+    e.stopPropagation();
+    menu.hidden = !menu.hidden;
+    toggle.setAttribute('aria-expanded', String(!menu.hidden));
+  });
+  document.addEventListener('click', function () {
+    menu.hidden = true;
+    toggle.setAttribute('aria-expanded', 'false');
+  });
+})();
+</script>
       </header>
       {% else %}
       <header class="topbar">
