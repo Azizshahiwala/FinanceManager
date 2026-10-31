@@ -38,6 +38,7 @@
         <div>Description</div>
         <div>Type</div>
         <div class="amt">Amount</div>
+        <div>Actions</div>
     </div>
 
     {% for tx in transactions %}
@@ -69,6 +70,16 @@
         <div class="amt {{ tx.type }}">
             {% if tx.type == 'income' %}+{% else %}-{% endif %}₹{{ tx.amount|floatformat:2 }}
         </div>
+
+        {% if tx.source_id %}
+        <div class="tx-actions">
+            <a href="{% url 'editTransaction' tx.type tx.source_id %}" class="btn-pill ghost">Edit</a>
+            <form method="post" action="{% url 'deleteTransaction' tx.type tx.source_id %}" onsubmit="return confirm('Delete this transaction?');">
+                {% csrf_token %}
+                <button type="submit" class="btn-pill danger">Delete</button>
+            </form>
+        </div>
+        {% endif %}
 
     </div>
 

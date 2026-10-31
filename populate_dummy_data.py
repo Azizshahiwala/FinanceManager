@@ -29,6 +29,7 @@ django.setup()
 
 from django.contrib.auth.models import User
 from Finance.models import Budget, Expense, Income, TransactionLogs
+from Finance.services.transaction_sync import create_or_update_transaction_log
 
 
 def get_target_users(username_arg=None):
@@ -82,14 +83,9 @@ def create_inflow(user, tx_date, category, item_name, amount, description=""):
     record_text = f"{item_name} - {description}" if description else item_name
     sys_desc = f"{user.username}, created income of {item_name}, amounted: {amount_dec}"
 
-    TransactionLogs.objects.create(
-        user=user,
-        type='income',
-        date=tx_date,
-        amount=amount_dec,
-        record=record_text,
-        description=sys_desc,
-    )
+    inc.description = description
+    inc.save(update_fields=['description'])
+    create_or_update_transaction_log(user, inc, 'income')
     return inc, True
 
 
@@ -121,14 +117,9 @@ def create_outflow(user, tx_date, category, item_name, amount, quantity=1, unit=
     unit_str = f" in {unit}(s)" if unit else ""
     sys_desc = f"{user.username}, created expense of {item_name}, amounted: {amount_dec}{unit_str}"
 
-    TransactionLogs.objects.create(
-        user=user,
-        type='expense',
-        date=tx_date,
-        amount=amount_dec,
-        record=record_text,
-        description=sys_desc,
-    )
+    exp.description = description
+    exp.save(update_fields=['description'])
+    create_or_update_transaction_log(user, exp, 'expense')
     return exp, True
 
 

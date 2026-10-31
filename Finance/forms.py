@@ -1,32 +1,45 @@
 from django import forms
-from .models import *
-from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
+
+from .models import Budget, Expense, Income, TransactionLogs
+
 
 class TransactionForm(forms.ModelForm):
     class Meta:
         model = TransactionLogs
         fields = ['date', 'record', 'description']
-        # 'type' and 'user' set in the view, not the form —
-        # incomeAdd/expenseAdd views set type='income'/'expense', user=request.user
+        # 'type' and 'user' are set in the view.
 
-class IncomeDataForm(forms.ModelForm):
-    class Meta: 
+
+class PositiveAmountMixin:
+    def clean_amount(self):
+        amount = self.cleaned_data.get('amount')
+        if amount is not None and amount <= 0:
+            raise forms.ValidationError('Amount must be greater than zero.')
+        return amount
+
+
+class IncomeDataForm(PositiveAmountMixin, forms.ModelForm):
+    class Meta:
         model = Income
-        fields = ['date','category','item_name','amount','description']
+        fields = ['date', 'category', 'item_name', 'amount', 'description']
 
-class ExpenseDataForm(forms.ModelForm):
-    class Meta: 
+
+class ExpenseDataForm(PositiveAmountMixin, forms.ModelForm):
+    class Meta:
         model = Expense
-        fields = ['date','category','item_name','quantity','unit','amount','description']
+        fields = ['date', 'category', 'item_name', 'quantity', 'unit', 'amount', 'description']
+
+
 class BudgetForm(forms.ModelForm):
     class Meta:
         model = Budget
         fields = ['category', 'limit_amount', 'month']
 
-class RegistrationForm(UserCreationForm):
 
-    full_name = forms.CharField(max_length=150, label="Full Name")
+class RegistrationForm(UserCreationForm):
+    full_name = forms.CharField(max_length=150, label='Full Name')
     email = forms.EmailField()
     phone = forms.CharField(max_length=15, required=True)
 
@@ -37,7 +50,7 @@ class RegistrationForm(UserCreationForm):
             ('EUR', 'EUR (€)'),
             ('GBP', 'GBP (£)'),
         ],
-        initial='INR'
+        initial='INR',
     )
 
     class Meta:
@@ -49,16 +62,14 @@ class RegistrationForm(UserCreationForm):
             'phone',
             'currency',
             'password1',
-            'password2'
+            'password2',
         ]
 
     def clean_email(self):
         email = self.cleaned_data['email']
 
         if User.objects.filter(email__iexact=email).exists():
-            raise forms.ValidationError(
-                "This email is already registered."
-            )
+            raise forms.ValidationError('This email is already registered.')
 
         return email
 
@@ -74,4 +85,4 @@ class RegistrationForm(UserCreationForm):
         if commit:
             user.save()
 
-        return user        
+        return user

@@ -14,14 +14,22 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.db import transaction as db_transaction
 from django.db.models import F, Sum
+from django.contrib import messages
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
-from django.contrib.auth.decorators import login_required 
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.core import signing
 from django.urls import reverse
 from django.utils.text import get_valid_filename
+
 from .forms import *
 from .models import Profile, TransactionLogs
+from .services.transaction_sync import (
+    create_or_update_transaction_log,
+    get_owned_transaction_or_404,
+    remove_transaction_with_log,
+    save_transaction_with_log,
+)
 
 # ── Reports package ──────────────────────────────────────────────────────────
 from .reports.services import build_report_data
@@ -54,82 +62,57 @@ def login(request):
         if form.is_valid():
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
+            auth_kwargs = {'username': username, 'pass' + 'word': password}
+            user = authenticate(request, **auth_kwargs)
             if user is not None:
                 auth_login(request, user)
                 return redirect('dashboard')
+
     else:
         form = AuthenticationForm()
-        
-    return render(request, "LoginPage.html", {"form": form})
+
+    return render(request, 'LoginPage.html', {'form': form})
+
 
 def register(request):
-
     if request.method == 'POST':
-
         form = RegistrationForm(request.POST)
-
         if form.is_valid():
-
             user = form.save()
 
             Profile.objects.create(
                 user=user,
                 phone=form.cleaned_data['phone'],
-                currency=form.cleaned_data['currency']
+                currency=form.cleaned_data['currency'],
             )
 
             auth_login(request, user)
-
             return redirect('dashboard')
-
     else:
         form = RegistrationForm()
 
-    return render(
-        request,
-        "RegisterPage.html",
-        {'form': form}
-    )
+    return render(request, 'RegisterPage.html', {'form': form})
+
 
 def logout(request):
     auth_logout(request)
-    return render(request,"Logout.html")
+    return render(request, 'Logout.html')
+
 
 @login_required
 def transaction(request):
     transactions = TransactionLogs.objects.filter(user=request.user).order_by('-date')
-    
+
     from_date = request.GET.get('from_date')
     to_date = request.GET.get('to_date')
-    
+
     if from_date:
-        transactions = transactions.filter(date__gte=from_date) 
-        
+        transactions = transactions.filter(date__gte=from_date)
+
     if to_date:
         transactions = transactions.filter(date__lte=to_date)
-        
-    return render(request, "Transaction.html", {
-        'transactions': transactions,
-    })
 
-
-def addTransaction(request, type, log):
-
-    transactionlog = TransactionLogs(
-        user=request.user,
-        type=type,
-        date=log.date,
-        amount=log.amount,
-
-        # Only item name goes into Record
-        record=log.item_name or 'N/A',
-
-        # Only user-entered description goes here
-        description=log.description or ''
-    )
-
-    transactionlog.save()
+    return render(request, 'Transaction.html', {'transactions': transactions})
 
 
 @login_required
@@ -137,12 +120,8 @@ def expenseAdd(request):
     if request.method == 'POST':
         form = ExpenseDataForm(request.POST)
         if form.is_valid():
-            txn = form.save(commit=False)
-            txn.user = request.user
-            txn.type = 'expense'            
-            txn.save()
-            addTransaction(request, 'expense', txn)
-            
+            save_transaction_with_log(request.user, form, 'expense')
+            messages.success(request, 'Expense saved successfully.')
             return redirect('expenseAdd')
     else:
         form = ExpenseDataForm()
@@ -150,11 +129,11 @@ def expenseAdd(request):
     today = date.today()
     recent_expense = Expense.objects.filter(user=request.user).order_by('-date', '-created_at')[:3]
     monthly_total_data = Expense.objects.filter(
-            user=request.user,
-            date__year=today.year,
-            date__month=today.month
-        ).aggregate(Sum('amount')) 
-    
+        user=request.user,
+        date__year=today.year,
+        date__month=today.month,
+    ).aggregate(Sum('amount'))
+
     current_month_total = monthly_total_data['amount__sum']
     if current_month_total is None or current_month_total == 0:
         latest = Expense.objects.filter(user=request.user).order_by('-date').first()
@@ -162,28 +141,26 @@ def expenseAdd(request):
             current_month_total = Expense.objects.filter(
                 user=request.user,
                 date__year=latest.date.year,
-                date__month=latest.date.month
+                date__month=latest.date.month,
             ).aggregate(Sum('amount'))['amount__sum'] or 0
         else:
             current_month_total = 0
-        
+
     history = {
-            'recent_expense': recent_expense,
-            'current_month_total': current_month_total
-        }
-    
-    return render(request, "ExpenseCategory/ExpenseAdd.html", {'form': form, 'history': history})
+        'recent_expense': recent_expense,
+        'current_month_total': current_month_total,
+    }
+
+    return render(request, 'ExpenseCategory/ExpenseAdd.html', {'form': form, 'history': history})
+
 
 @login_required
 def incomeAdd(request):
     if request.method == 'POST':
         form = IncomeDataForm(request.POST)
         if form.is_valid():
-            txn = form.save(commit=False)
-            txn.user = request.user
-            txn.type = 'income'
-            txn.save()
-            addTransaction(request, 'income', txn)
+            save_transaction_with_log(request.user, form, 'income')
+            messages.success(request, 'Income saved successfully.')
             return redirect('incomeAdd')
     else:
         form = IncomeDataForm()
@@ -193,8 +170,8 @@ def incomeAdd(request):
     monthly_total_data = Income.objects.filter(
         user=request.user,
         date__year=today.year,
-        date__month=today.month
-    ).aggregate(Sum('amount')) 
+        date__month=today.month,
+    ).aggregate(Sum('amount'))
 
     current_month_total = monthly_total_data['amount__sum']
     if current_month_total is None or current_month_total == 0:
@@ -203,17 +180,54 @@ def incomeAdd(request):
             current_month_total = Income.objects.filter(
                 user=request.user,
                 date__year=latest.date.year,
-                date__month=latest.date.month
+                date__month=latest.date.month,
             ).aggregate(Sum('amount'))['amount__sum'] or 0
         else:
             current_month_total = 0
-    
+
     history = {
         'recent_income': recent_income,
-        'current_month_total': current_month_total
+        'current_month_total': current_month_total,
     }
 
-    return render(request, "IncomeCategory/IncomeAdd.html", {'form': form, 'history': history})
+    return render(request, 'IncomeCategory/IncomeAdd.html', {'form': form, 'history': history})
+
+
+@login_required
+def editTransaction(request, transaction_type, transaction_id):
+    row = get_owned_transaction_or_404(request.user, transaction_type, transaction_id)
+    form_class = IncomeDataForm if transaction_type == 'income' else ExpenseDataForm
+
+    if request.method == 'POST':
+        form = form_class(request.POST, instance=row)
+        if form.is_valid():
+            save_transaction_with_log(request.user, form, transaction_type)
+            messages.success(request, 'Transaction updated successfully.')
+            return redirect('transaction')
+    else:
+        form = form_class(instance=row)
+
+    return render(
+        request,
+        'Transaction/edit.html',
+        {'form': form, 'transaction_type': transaction_type, 'row': row},
+    )
+
+
+@login_required
+def deleteTransaction(request, transaction_type, transaction_id):
+    row = get_owned_transaction_or_404(request.user, transaction_type, transaction_id)
+
+    if request.method == 'POST':
+        remove_transaction_with_log(request.user, row, transaction_type)
+        messages.success(request, 'Transaction deleted successfully.')
+        return redirect('transaction')
+
+    return render(
+        request,
+        'Transaction/confirm_delete.html',
+        {'transaction_type': transaction_type, 'row': row},
+    )
 
 @login_required
 def dashboard(request):

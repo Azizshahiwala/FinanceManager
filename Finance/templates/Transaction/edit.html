@@ -1,0 +1,18 @@
+{% extends 'Homepage.html' %}
+
+{% block title %}Edit transaction{% endblock %}
+
+{% block content %}
+<div class="section-heading">
+    <span>Edit {{ transaction_type|capfirst }}</span>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div class="filter-actions">
+        <button type="submit" class="btn-pill">Save changes</button>
+        <a href="{% url 'transaction' %}" class="btn-pill ghost">Cancel</a>
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'Homepage.html' %}
+
+{% block title %}Delete transaction{% endblock %}
+
+{% block content %}
+<div class="section-heading">
+    <span>Delete {{ transaction_type|capfirst }}</span>
+</div>
+
+<p>Delete this {{ transaction_type|lower }}?</p>
+<p><strong>{{ row.item_name|default:'N/A' }}</strong></p>
+<p>Amount: {{ row.amount }}</p>
+<p>Date: {{ row.date }}</p>
+
+<form method="post" action="{% url 'deleteTransaction' transaction_type row.pk %}">
+    {% csrf_token %}
+    <div class="filter-actions">
+        <button type="submit" class="btn-pill danger">Yes, delete</button>
+        <a href="{% url 'transaction' %}" class="btn-pill ghost">Cancel</a>
+    </div>
+</form>
+{% endblock %}

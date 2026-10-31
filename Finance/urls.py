@@ -11,7 +11,9 @@ urlpatterns = [
     path('logout/', views.logout, name='logout'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('transaction/', views.transaction, name='transaction'),
-    # path('update-budget/', views.updateBudget, name='updateBudget'),
+    path('transactions/<str:transaction_type>/<int:transaction_id>/edit/', views.editTransaction, name='editTransaction'),
+    path('transactions/<str:transaction_type>/<int:transaction_id>/delete/', views.deleteTransaction, name='deleteTransaction'),
+    path('update-budget/', views.updateBudget, name='updateBudget'),
     path('expense-add/', views.expenseAdd, name='expenseAdd'),
     path('income-add/', views.incomeAdd, name='incomeAdd'),
     
