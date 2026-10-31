@@ -1307,3 +1307,11 @@ form textarea:focus {
         border-radius: 18px;
     }
 }
+
+.empty-description {
+    display: block;
+    width: 100%;
+    text-align: center;
+    position: relative;
+    left: -50%;
+}

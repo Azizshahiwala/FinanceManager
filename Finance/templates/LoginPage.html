@@ -7,7 +7,7 @@
 
   <div class="responsive-svg-wrapper">
     <img src="{% static 'lock.svg' %}" alt="Lock">
-</div>
+  </div>
   <div class="auth-form">
     <div class="logo-title">Personal Finance<span>Management System</span></div>
 
@@ -24,10 +24,14 @@
         <input type="password" id="id_password" name="password" required>
 
         {% if form and form.errors %}
-          <p class="error">Invalid username or password.</p>
+        <p class="error">Invalid username or password.</p>
         {% endif %}
 
         <button type="submit" class="btn-primary">Login</button>
+        <p class="hint">
+          Don't have an account?
+          <a href="{% url 'register' %}">Register here</a>
+        </p>
       </form>
     </div>
   </div>

@@ -17,12 +17,20 @@ class ExpenseAdmin(admin.ModelAdmin):
     date_hierarchy = 'date'
     ordering = ('-date',)
 
+# @admin.register(TransactionLogs)
+# class TransactionLogsAdmin(admin.ModelAdmin):
+#     list_display = ('date', 'user', 'type', 'amount', 'record')
+#     list_filter = ('type', 'date', 'user')
+#     search_fields = ('record', 'description', 'user__username')
+#     date_hierarchy = 'date'
+
 @admin.register(TransactionLogs)
 class TransactionLogsAdmin(admin.ModelAdmin):
     list_display = ('date', 'user', 'type', 'amount', 'record')
     list_filter = ('type', 'date', 'user')
     search_fields = ('record', 'description', 'user__username')
     date_hierarchy = 'date'
+    actions = ['delete_selected']
 
 @admin.register(Budget)
 class BudgetAdmin(admin.ModelAdmin):

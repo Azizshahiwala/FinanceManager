@@ -1,52 +1,83 @@
+
 {% extends 'Homepage.html' %}
 {% load static %}
 {% block title %}Transactions{% endblock %}
 
 {% block content %}
-<div class="section-heading"><span>All Transactions</span></div>
 
+<div class="section-heading">
+    <span>All Transactions</span>
+</div>
 
 <form method="get" class="filter-bar">
 
-  <div class="field">
-    <label for="from_date">From date</label>
-    <input type="date" name="from_date" id="from_date" value="{{ request.GET.from_date }}">
-  </div>
+    <div class="field">
+        <label for="from_date">From date</label>
+        <input type="date" name="from_date" id="from_date"
+               value="{{ request.GET.from_date }}">
+    </div>
 
-  <div class="field">
-    <label for="to_date">To date</label>
-    <input type="date" name="to_date" id="to_date" value="{{ request.GET.to_date }}">
-  </div>
+    <div class="field">
+        <label for="to_date">To date</label>
+        <input type="date" name="to_date" id="to_date"
+               value="{{ request.GET.to_date }}">
+    </div>
 
-  <div class="filter-actions">
-    <button type="submit" class="btn-pill">Filter</button>
-    <a href="{% url 'transaction' %}" class="btn-pill ghost">Reset</a>
-  </div>
+    <div class="filter-actions">
+        <button type="submit" class="btn-pill">Filter</button>
+        <a href="{% url 'transaction' %}" class="btn-pill ghost">Reset</a>
+    </div>
+
 </form>
 
 <div class="tx-table">
-  <div class="tx-head">
-    <div>Date</div>
-    <div>Record</div>
-    <div>Description</div>
-    <div>Type</div>
-    <div class="amt">Amount</div>
-  </div>
 
-  {% for tx in transactions %}
-  <div class="tx-line">
-    <div class="date">{{ tx.date|date:"d M Y" }}</div>
-    <div class="rec">{{ tx.record }}</div>
-    <div class="desc">{{ tx.description }}</div>
-    <div><span class="pill {{ tx.type }}">{{ tx.type|capfirst }}</span></div>
-    <div class="amt {{ tx.type }}">{% if tx.type == 'income' %}+{% else %}-{% endif %}₹{{ tx.amount|floatformat:2 }}</div>
-  </div>
+    <div class="tx-head">
+        <div>Date</div>
+        <div>Record</div>
+        <div>Description</div>
+        <div>Type</div>
+        <div class="amt">Amount</div>
+    </div>
 
-  
-  {% empty %}
-  <p class="tx-count">No transactions found.</p>
-  {% endfor %}
-  
+    {% for tx in transactions %}
+
+    <div class="tx-line">
+
+        <div class="date">
+            {{ tx.date|date:"d M Y" }}
+        </div>
+
+        <div class="rec">
+            {{ tx.record }}
+        </div>
+
+        <div class="desc">
+            {% if tx.description %}
+                {{ tx.description }}
+            {% else %}
+                <span class="empty-description">—</span>
+            {% endif %}
+        </div>
+
+        <div>
+            <span class="pill {{ tx.type }}">
+                {{ tx.type|capfirst }}
+            </span>
+        </div>
+
+        <div class="amt {{ tx.type }}">
+            {% if tx.type == 'income' %}+{% else %}-{% endif %}₹{{ tx.amount|floatformat:2 }}
+        </div>
+
+    </div>
+
+    {% empty %}
+
+    <p class="tx-count">No transactions found.</p>
+
+    {% endfor %}
+
 </div>
 
 <div class="decorative-svg place-bottom place-left">
@@ -56,5 +87,9 @@
 <div class="decorative-svg place-bottom place-right">
     <img src="{% static 'stacked_money.svg' %}" alt="Stacked Money">
 </div>
-<p class="tx-count">Total Transactions: {{ transactions|length }}</p>
+
+<p class="tx-count">
+    Total Transactions: {{ transactions|length }}
+</p>
+
 {% endblock %}
