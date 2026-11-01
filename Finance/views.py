@@ -501,11 +501,7 @@ def exportData(request):
     ) or 'transactions'
     data = process_data(request.user)
 
-    if export_type == 'csv':
-        response = HttpResponse(content_type='text/csv')
-        response.write(data.to_csv(index=False))
-        filename = f'{user_filename}.csv'
-    elif export_type == 'json':
+    if export_type == 'json':
         response = HttpResponse(data.to_json(orient='records'), content_type='application/json')
         filename = f'{user_filename}.json'
     elif export_type == 'xlsx':
@@ -518,7 +514,7 @@ def exportData(request):
         filename = f'{user_filename}.xlsx'
     else:
         return HttpResponse(
-            'Unsupported export format. Choose csv, xlsx, or json.',
+            'Unsupported export format. Choose xlsx or json.',
             status=400
         )
 
@@ -616,7 +612,7 @@ def reportsHome(request):
             filename = f'{user_filename}.xlsx'
         else:
             return HttpResponse(
-                'Unsupported export format. Choose csv, xlsx, or json.', status=400
+                'Unsupported export format. Choose xlsx or json.', status=400
             )
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response

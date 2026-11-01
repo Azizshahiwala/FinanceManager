@@ -68,6 +68,7 @@ class LiveTransactionLinkTests(TestCase):
         self.assertContains(response, 'Download transactions')
         self.assertContains(response, 'Generate live link')
         self.assertContains(response, 'name="export_dropdown"')
+        self.assertNotContains(response, 'value="csv"')
         self.assertContains(response, 'name="ttl"')
         self.assertContains(response, 'Revoke live link')
         self.assertRegex(
@@ -86,16 +87,19 @@ class LiveTransactionLinkTests(TestCase):
             r'<button[^>]*class="btn-danger"[^>]*>Revoke live link</button>'
         )
 
-    def test_export_form_downloads_csv_with_safe_filename(self):
-        response = self.client.get(
-            reverse('reportsHome'),
-            {'export_dropdown': 'csv', 'filename': 'My transactions'}
-        )
+    def test_csv_export_is_rejected(self):
+        for endpoint in ('reportsHome', 'exportArea'):
+            with self.subTest(endpoint=endpoint):
+                response = self.client.get(
+                    reverse(endpoint),
+                    {'export_dropdown': 'csv', 'filename': 'My transactions'},
+                )
 
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response['Content-Type'], 'text/csv')
-        self.assertIn('filename="My_transactions.csv"', response['Content-Disposition'])
-        self.assertIn('Salary', response.content.decode())
+                self.assertEqual(response.status_code, 400)
+                self.assertContains(
+                    response, 'Unsupported export format. Choose xlsx or json.',
+                    status_code=400,
+                )
 
     def test_old_export_area_url_still_works(self):
         """export-area/ must still work (redirects to reportsHome when no export type)."""
