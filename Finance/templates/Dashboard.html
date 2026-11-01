@@ -72,7 +72,7 @@
         <div><h2>Balance overview</h2><p>Track how your running balance changes over time.</p></div>
         <div class="chart-filters">
           <select id="balanceRange" aria-label="Choose balance date range">
-            <option value="month" selected>This Month</option>
+            <option value="year" selected>This Year</option>
             <option value="custom">Custom Date Range</option>
           </select>
           <input type="date" id="balanceFrom" aria-label="Balance from date" hidden>
@@ -80,7 +80,7 @@
         </div>
       </div>
       <div class="chart-area small"><canvas id="balanceChart" aria-label="Running balance line chart"></canvas></div>
-      <p id="balanceRangeNote" class="dash-muted" style="margin:10px 0 0">Showing this month.</p>
+      <p id="balanceRangeNote" class="dash-muted" style="margin:10px 0 0">Showing this year.</p>
     </section>
   </div>
 
@@ -129,45 +129,115 @@
  const balanceChart=new Chart(document.getElementById('balanceChart'),{
    type:'line',
    data:{labels:[],datasets:[{
-     label:'Balance',data:[],borderColor:'#6685c3',
-     backgroundColor:'rgba(102,133,195,.12)',borderWidth:2.5,
-     tension:.3,fill:true,pointRadius:0,pointHoverRadius:3,pointHitRadius:10
+     label:'Balance',
+     data:[],
+     borderColor:'#7898CC',
+     backgroundColor:'rgba(120,152,204,0.16)',
+     borderWidth:3,
+     tension:0.42,
+     cubicInterpolationMode:'monotone',
+     fill:true,
+     pointRadius:0,
+     pointHoverRadius:0,
+     pointHitRadius:12,
+     borderCapStyle:'round',
+     borderJoinStyle:'round',
+     spanGaps:false
    }]},
-   options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
+   options:{
+     responsive:true,
+     maintainAspectRatio:false,
+     animation:{duration:650,easing:'easeOutQuart'},
+     interaction:{intersect:false,mode:'index'},
      plugins:{
        legend:{display:false},
-       tooltip:{callbacks:{label:c=>'Balance: '+precise(c.raw)}}
+       tooltip:{displayColors:false,callbacks:{title:items=>items.length?items[0].label:'',label:c=>'Balance: '+precise(c.raw)}}
      },
      scales:{
-       x:{grid:{display:false},ticks:{color:'#879087',maxRotation:0,autoSkip:true,maxTicksLimit:8,font:{size:10}}},
-       y:{beginAtZero:false,grid:{color:'#eef1ec'},ticks:{color:'#6685c3',callback:money,font:{size:10}}}
+       x:{grid:{display:false},ticks:{color:'#879087',maxRotation:0,autoSkip:true,maxTicksLimit:12,font:{size:10}}},
+       y:{beginAtZero:false,grace:'8%',grid:{color:'#eef1ec'},ticks:{color:'#7898CC',callback:money,font:{size:10}}}
      }
    }
  });
 
+ function monthlySnapshot(year){
+   const labels=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+   const values=Array(12).fill(null);
+   const latestByMonth=Array(12).fill(null);
+   dailyDates.forEach((date,index)=>{
+     if(Number(date.slice(0,4))!==year) return;
+     const month=Number(date.slice(5,7))-1;
+     latestByMonth[month]=index;
+   });
+   latestByMonth.forEach((index,month)=>{
+     if(index!==null) values[month]=dailyBalance[index];
+   });
+   return {labels,values};
+ }
+
  function updateBalanceChart(){
    const mode=rangeSelect.value;
-   let indexes=[];
-   if(mode==='month'){
-     const month=new Date().getMonth()+1;
-     indexes=dailyDates.map((d,i)=>({d,i}))
-       .filter(v=>Number(v.d.slice(5,7))===month).map(v=>v.i);
+   let labels=[], values=[];
+   const today=new Date();
+   const todayISO=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+
+   if(mode==='year'){
+     const snapshot=monthlySnapshot(today.getFullYear());
+     labels=snapshot.labels;
+     values=snapshot.values;
+     rangeNote.textContent='Monthly closing balance · '+today.getFullYear();
+   }else if(mode==='month'){
+     const monthPrefix=todayISO.slice(0,7);
+     const indexes=dailyDates.map((d,i)=>({d,i})).filter(v=>v.d.startsWith(monthPrefix)).map(v=>v.i);
+     labels=indexes.map(i=>dailyLabels[i]);
+     values=indexes.map(i=>dailyBalance[i]);
+     rangeNote.textContent=indexes.length
+       ?'Daily running balance · '+today.toLocaleString('en-IN',{month:'long',year:'numeric'})
+       :'No transactions or balance history available for this month yet.';
+   }else if(mode==='all'){
+     const monthEnds={};
+     dailyDates.forEach((d,i)=>{monthEnds[d.slice(0,7)]=i;});
+     const keys=Object.keys(monthEnds).sort();
+     labels=keys.map(key=>{
+       const [year,month]=key.split('-').map(Number);
+       return new Date(year,month-1,1).toLocaleString('en-IN',{month:'short',year:'2-digit'});
+     });
+     values=keys.map(key=>dailyBalance[monthEnds[key]]);
+     rangeNote.textContent=keys.length?'Monthly closing balance · All recorded history':'No balance history available yet.';
    }else{
-     const from=fromInput.value, to=toInput.value;
-     indexes=dailyDates.map((d,i)=>({d,i}))
+     const from=fromInput.value;
+     const to=toInput.value;
+     if(from && to && from>to){
+       rangeNote.textContent='Start date must be on or before the end date.';
+       balanceChart.data.labels=[];
+       balanceChart.data.datasets[0].data=[];
+       balanceChart.update();
+       return;
+     }
+     const indexes=dailyDates.map((d,i)=>({d,i}))
        .filter(v=>(!from||v.d>=from)&&(!to||v.d<=to)).map(v=>v.i);
+     labels=indexes.map(i=>dailyLabels[i]);
+     values=indexes.map(i=>dailyBalance[i]);
+     rangeNote.textContent=indexes.length
+       ?'Daily running balance · '+dailyDates[indexes[0]]+' to '+dailyDates[indexes[indexes.length-1]]
+       :'No balance history available for the selected date range.';
    }
-   balanceChart.data.labels=indexes.map(i=>dailyLabels[i]);
-   balanceChart.data.datasets[0].data=indexes.map(i=>dailyBalance[i]);
+
+   balanceChart.data.labels=labels;
+   balanceChart.data.datasets[0].data=values;
    balanceChart.update();
-   rangeNote.textContent=indexes.length
-     ?'Showing '+indexes.length+' days · '+dailyLabels[indexes[0]]+' to '+dailyLabels[indexes[indexes.length-1]]
-     :'No balance data available for this date range.';
  }
 
  rangeSelect.addEventListener('change',()=>{
    const custom=rangeSelect.value==='custom';
-   fromInput.hidden=!custom;toInput.hidden=!custom;
+   fromInput.hidden=!custom;
+   toInput.hidden=!custom;
+   if(custom){
+     const today=new Date();
+     const todayISO=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+     if(!fromInput.value) fromInput.value=dailyDates[0]||todayISO;
+     if(!toInput.value) toInput.value=todayISO;
+   }
    updateBalanceChart();
  });
  fromInput.addEventListener('change',updateBalanceChart);

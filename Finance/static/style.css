@@ -78,15 +78,11 @@ body {
   letter-spacing: -0.2px;
 }
 
-.brand .badge {
+.brand-logo {
   width: 34px;
   height: 34px;
-  border-radius: 50%;
-  background: var(--black);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .navlinks {
@@ -1365,6 +1361,18 @@ form textarea:focus {
   gap: 16px;
   flex-wrap: wrap;
   margin-bottom: 8px;
+}
+
+.goals-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.goals-illustration {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
 }
 
 .goals-available {

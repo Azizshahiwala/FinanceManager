@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <!-- Sketchy Double-Lined Box -->
+  <path d="M 30 40 Q 100 35 170 45 Q 175 100 165 160 Q 90 165 35 155 Q 25 100 30 40 Z" fill="none" stroke="#000000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 25 45 Q 100 30 175 40 Q 165 100 170 155 Q 90 170 30 160 Q 35 100 25 45 Z" fill="none" stroke="#000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+  
+  <!-- Letter F -->
+  <path d="M 65 135 Q 70 95 65 65" fill="none" stroke="#000000" stroke-width="14" stroke-linecap="round" />
+  <path d="M 60 70 Q 80 65 95 70" fill="none" stroke="#000000" stroke-width="14" stroke-linecap="round" />
+  <path d="M 62 100 Q 75 95 85 100" fill="none" stroke="#000000" stroke-width="12" stroke-linecap="round" />
+  
+  <!-- Letter M -->
+  <path d="M 110 135 Q 115 95 110 65" fill="none" stroke="#000000" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 110 70 Q 120 100 125 115" fill="none" stroke="#000000" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 125 115 Q 135 90 145 70" fill="none" stroke="#000000" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M 145 65 Q 140 95 145 135" fill="none" stroke="#000000" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />
+  
+  <!-- Doodle Sparkle Accent -->
+  <path d="M 175 25 Q 185 15 190 25 Q 180 35 175 25 Z" fill="none" stroke="#000000" stroke-width="4" stroke-linejoin="round" />
+  <path d="M 182 10 L 184 15 M 195 23 L 190 25 M 184 35 L 182 30 M 172 25 L 177 23" fill="none" stroke="#000000" stroke-width="4" stroke-linecap="round" />
+</svg>

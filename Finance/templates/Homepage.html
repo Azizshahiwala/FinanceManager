@@ -18,7 +18,7 @@
 
       {% if user.is_authenticated %}
       <header class="topbar">
-        <div class="brand"><span class="badge">💰</span> Finance Manager</div>
+        <div class="brand"><img class="brand-logo" src="{% static 'Logo_FM.svg' %}" alt=""> Finance Manager</div>
         <nav class="navlinks">
           <a href="{% url 'dashboard' %}"
             class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Dashboard</a>
@@ -66,7 +66,7 @@
       </header>
       {% else %}
       <header class="topbar">
-        <div class="brand"><span class="badge">💰</span> Finance Manager</div>
+        <div class="brand"><img class="brand-logo" src="{% static 'Logo_FM.svg' %}" alt=""> Finance Manager</div>
         <nav class="navlinks">
           <a href="{% url 'login' %}">Login</a>
           <a href="{% url 'register' %}">Register</a>

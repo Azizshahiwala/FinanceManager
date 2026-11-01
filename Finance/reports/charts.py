@@ -4,14 +4,13 @@ charts.py — server-side inline SVG chart helpers.
 Both bar_chart() and donut_chart() return an SVG string that renders
 identically in a browser and in WeasyPrint (no JavaScript needed).
 
-Palette matches the dashboard:
-  ['#E85D91', '#17161A', '#2E9E6E', '#E2645B', '#F3AFC9', '#837C70', '#D9CFB8']
+Palette matches the dashboard's soft pastel colours.
 """
 from __future__ import annotations
 
 from html import escape
 
-PALETTE = ['#E85D91', '#17161A', '#2E9E6E', '#E2645B', '#F3AFC9', '#837C70', '#D9CFB8']
+PALETTE = ['#F6B8C8', '#B8D8F0', '#BFE3C0', '#F8D6A0', '#D6C8F0', '#F4C2A1', '#C7E7E5']
 INC_COLOR = '#78c894'
 EXP_COLOR = '#f1ad8b'
 
@@ -37,7 +36,7 @@ def bar_chart(
     pad_left = 58
     pad_right = 18
     pad_top = 18
-    pad_bottom = 52  # room for x-axis labels
+    pad_bottom = 74  # room for rotated x-axis labels
     chart_w = width - pad_left - pad_right
     chart_h = height - pad_top - pad_bottom
 
@@ -96,9 +95,11 @@ def bar_chart(
             )
         # x-axis label
         label_str = label if len(label) <= 7 else label[:6] + '…'
+        label_y = pad_top + chart_h + 16
         lines.append(
-            f'<text x="{cx:.2f}" y="{pad_top + chart_h + 16:.1f}" '
-            f'text-anchor="middle" font-size="9" fill="#879087">'
+            f'<text x="{cx:.2f}" y="{label_y:.1f}" '
+            f'text-anchor="middle" font-size="9" fill="#879087" '
+            f'transform="rotate(-90 {cx:.2f} {label_y:.1f})">'
             f'{_safe(label_str)}</text>'
         )
 

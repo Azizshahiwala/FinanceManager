@@ -301,6 +301,7 @@ class ReportViewTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'October 2026')
+        self.assertContains(response, 'src="/static/Logo_FM.svg"')
 
     def test_preview_yearly_returns_200(self):
         response = self.client.get(

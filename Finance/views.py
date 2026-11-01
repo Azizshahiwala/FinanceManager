@@ -264,40 +264,42 @@ def dashboard(request):
     savings_bar = max(0, min(100, savings_rate)) if savings_rate is not None else 0
     balance = all_time_balance(request.user)
 
-    # Daily data for the combined bar + line chart. No future dates are generated.
-    year_start = date(report_year, 1, 1)
-    year_end = min(date(report_year, 12, 31), today)
-    daily_income_map = {
-        row['date']: float(row['total'])
-        for row in incomes.filter(date__range=(year_start, year_end))
-        .values('date').annotate(total=Sum('amount'))
-    }
-    daily_expense_map = {
-        row['date']: float(row['total'])
-        for row in expenses.filter(date__range=(year_start, year_end))
-        .values('date').annotate(total=Sum('amount'))
-    }
-
-    # Running balance includes all earlier transactions, so the line reflects
-    # the account's cumulative net position rather than only the selected year.
-    opening_income = incomes.filter(date__lt=year_start).aggregate(total=Sum('amount'))['total'] or 0
-    opening_expense = expenses.filter(date__lt=year_start).aggregate(total=Sum('amount'))['total'] or 0
-    running_balance = float(opening_income - opening_expense)
+    # Daily running-balance history for the interactive Balance Overview.
+    # Build it across the user's full transaction history so This Month,
+    # This Year, All Time and Custom Date Range never depend on report_year.
+    first_income_date = incomes.filter(date__lte=today).order_by('date').values_list('date', flat=True).first()
+    first_expense_date = expenses.filter(date__lte=today).order_by('date').values_list('date', flat=True).first()
+    first_dates = [d for d in (first_income_date, first_expense_date) if d]
     daily_labels, daily_dates, daily_income, daily_expense, daily_balance = [], [], [], [], []
-    current_day = year_start
-    while current_day <= year_end:
-        day_income = daily_income_map.get(current_day, 0.0)
-        day_expense = daily_expense_map.get(current_day, 0.0)
-        running_balance += day_income - day_expense
-        daily_labels.append(current_day.strftime('%d %b'))
-        daily_dates.append(current_day.isoformat())
-        daily_income.append(round(day_income, 2))
-        daily_expense.append(round(day_expense, 2))
-        daily_balance.append(round(running_balance, 2))
-        current_day += timedelta(days=1)
+
+    if first_dates:
+        history_start = min(first_dates)
+        daily_income_map = {
+            row['date']: float(row['total'])
+            for row in incomes.filter(date__range=(history_start, today))
+            .values('date').annotate(total=Sum('amount'))
+        }
+        daily_expense_map = {
+            row['date']: float(row['total'])
+            for row in expenses.filter(date__range=(history_start, today))
+            .values('date').annotate(total=Sum('amount'))
+        }
+
+        running_balance = 0.0
+        current_day = history_start
+        while current_day <= today:
+            day_income = daily_income_map.get(current_day, 0.0)
+            day_expense = daily_expense_map.get(current_day, 0.0)
+            running_balance += day_income - day_expense
+            daily_labels.append(current_day.strftime('%d %b'))
+            daily_dates.append(current_day.isoformat())
+            daily_income.append(round(day_income, 2))
+            daily_expense.append(round(day_expense, 2))
+            daily_balance.append(round(running_balance, 2))
+            current_day += timedelta(days=1)
 
     # Category breakdown (top 6 + Others)
-    palette = ['#E85D91', '#17161A', '#2E9E6E', '#E2645B', '#F3AFC9', '#837C70', '#D9CFB8']
+    palette = ['#F6B8C8', '#B8D8F0', '#BFE3C0', '#F8D6A0', '#D6C8F0', '#F4C2A1', '#C7E7E5']
     cats = list(
         expenses.filter(date__year=report_year)
         .values('category').annotate(total=Sum('amount')).order_by('-total')

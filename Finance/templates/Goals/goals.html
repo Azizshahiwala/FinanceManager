@@ -4,7 +4,10 @@
 <section class="goals-page">
 
   <div class="goals-head">
-    <h1>My Goals</h1>
+    <div class="goals-title">
+      <img class="goals-illustration" src="{% static 'stacked_money.svg' %}" alt="">
+      <h1>My Goals</h1>
+    </div>
     <a href="{% url 'goalsHome' %}?new=1" class="btn-pill">+ Create Goal</a>
   </div>
   <p class="goals-available">Available to allocate: {{ profile.currency }} {{ available|floatformat:2 }}</p>
