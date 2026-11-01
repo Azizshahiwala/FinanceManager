@@ -166,6 +166,29 @@ class BuildReportDataTests(TestCase):
         self.assertAlmostEqual(data['total_expense'], 1000.0)
 
 
+class DashboardBudgetBalanceTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='balance-user', password='pw')
+        self.client.force_login(self.user)
+        prior_year = date.today().year - 1
+        Income.objects.create(
+            user=self.user, type='income', category='Salary',
+            date=date(prior_year, 1, 5), amount='1000.00',
+        )
+        Expense.objects.create(
+            user=self.user, type='expense', category='Food',
+            item_name='Groceries', date=date(prior_year, 1, 10), amount='250.00',
+        )
+
+    def test_dashboard_net_balance_matches_budget_balance(self):
+        dashboard = self.client.get(reverse('dashboard'))
+        budget = self.client.get(reverse('budgetSetup'))
+
+        self.assertEqual(dashboard.context['balance'], 750.0)
+        self.assertEqual(dashboard.context['balance'], budget.context['balance'])
+        self.assertContains(dashboard, 'Income minus expenses across all time')
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # Insight tests
 # ══════════════════════════════════════════════════════════════════════════════
@@ -389,50 +412,6 @@ class TransactionEditDeleteTests(TestCase):
         )
         return expense
 
-    def test_edit_income_updates_source_row_and_log(self):
-        income = self._create_income()
-
-        response = self.client.post(
-            reverse('editTransaction', args=['income', income.pk]),
-            {
-                'date': '2026-10-06',
-                'category': 'Salary',
-                'item_name': 'Bonus salary',
-                'amount': '5500.00',
-                'description': 'Monthly pay',
-            },
-        )
-
-        self.assertEqual(response.status_code, 302)
-        income.refresh_from_db()
-        self.assertEqual(income.item_name, 'Bonus salary')
-        log = TransactionLogs.objects.get(user=self.user, type='income', source_id=income.pk)
-        self.assertEqual(log.record, 'Bonus salary')
-        self.assertEqual(str(log.amount), '5500.00')
-
-    def test_edit_expense_updates_source_row_and_log(self):
-        expense = self._create_expense()
-
-        response = self.client.post(
-            reverse('editTransaction', args=['expense', expense.pk]),
-            {
-                'date': '2026-10-11',
-                'category': 'Food',
-                'item_name': 'Fresh groceries',
-                'quantity': '2',
-                'unit': 'bags',
-                'amount': '180.00',
-                'description': 'Weekly shopping',
-            },
-        )
-
-        self.assertEqual(response.status_code, 302)
-        expense.refresh_from_db()
-        self.assertEqual(expense.item_name, 'Fresh groceries')
-        log = TransactionLogs.objects.get(user=self.user, type='expense', source_id=expense.pk)
-        self.assertEqual(log.record, 'Fresh groceries')
-        self.assertEqual(str(log.amount), '180.00')
-
     def test_delete_expense_removes_source_row_and_log(self):
         expense = self._create_expense()
         response = self.client.post(reverse('deleteTransaction', args=['expense', expense.pk]))
@@ -440,6 +419,11 @@ class TransactionEditDeleteTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertFalse(Expense.objects.filter(pk=expense.pk, user=self.user).exists())
         self.assertFalse(TransactionLogs.objects.filter(user=self.user, type='expense', source_id=expense.pk).exists())
+
+    def test_edit_transaction_route_is_removed(self):
+        response = self.client.get('/transactions/income/1/edit/')
+
+        self.assertEqual(response.status_code, 404)
 
     def test_other_user_transaction_returns_404(self):
         other_expense = Expense.objects.create(
@@ -452,10 +436,8 @@ class TransactionEditDeleteTests(TestCase):
             description='Flight',
         )
 
-        edit_response = self.client.get(reverse('editTransaction', args=['expense', other_expense.pk]))
         delete_response = self.client.get(reverse('deleteTransaction', args=['expense', other_expense.pk]))
 
-        self.assertEqual(edit_response.status_code, 404)
         self.assertEqual(delete_response.status_code, 404)
 
     def test_get_delete_does_not_delete_row(self):
@@ -465,25 +447,6 @@ class TransactionEditDeleteTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(Expense.objects.filter(pk=expense.pk, user=self.user).exists())
 
-    def test_invalid_transaction_type_returns_404(self):
-        response = self.client.get(reverse('editTransaction', args=['transfer', 1]))
+    def test_invalid_delete_transaction_type_returns_404(self):
+        response = self.client.get(reverse('deleteTransaction', args=['transfer', 1]))
         self.assertEqual(response.status_code, 404)
-
-    def test_invalid_amount_shows_form_errors_and_keeps_values(self):
-        income = self._create_income()
-
-        response = self.client.post(
-            reverse('editTransaction', args=['income', income.pk]),
-            {
-                'date': '2026-10-06',
-                'category': 'Salary',
-                'item_name': 'Bonus salary',
-                'amount': '0',
-                'description': 'Monthly pay',
-            },
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Amount must be greater than zero.')
-        income.refresh_from_db()
-        self.assertEqual(income.item_name, 'Salary')

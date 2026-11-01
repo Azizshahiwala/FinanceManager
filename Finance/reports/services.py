@@ -16,6 +16,19 @@ from Finance.models import Budget, Expense, Income, TransactionLogs
 PALETTE = ['#E85D91', '#17161A', '#2E9E6E', '#E2645B', '#F3AFC9', '#837C70', '#D9CFB8']
 
 
+def all_time_balance(user):
+    """Return all-time income minus expenses, matching the budget balance."""
+    total_income = (
+        Income.objects.filter(user=user)
+        .aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    )
+    total_expense = (
+        Expense.objects.filter(user=user)
+        .aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    )
+    return float(total_income - total_expense)
+
+
 def _expense_by_category(user, start, end):
     """Return list of {category, total, pct} sorted desc, top 6 + Others."""
     cats = list(
@@ -117,10 +130,13 @@ def _monthly_series(user, start, end):
 
 
 def _previous_period(start, end):
-    """Return (prev_start, prev_end) for the previous equivalent window."""
+    """Return (prev_start, prev_end), or None if the window starts at the calendar limit."""
     length = (end - start).days + 1
-    prev_end = start - timedelta(days=1)
-    prev_start = prev_end - timedelta(days=length - 1)
+    try:
+        prev_end = start - timedelta(days=1)
+        prev_start = prev_end - timedelta(days=length - 1)
+    except OverflowError:
+        return None
     return prev_start, prev_end
 
 
@@ -139,11 +155,11 @@ def build_report_data(user, start: date, end: date) -> dict:
     """
     # ---- Income / Expense totals ----
     total_income_dec = (
-        Income.objects.filter(user=user, date__gte=start, date__lte=end)
+        Income.objects.filter(user=user, date__range=(start,end))
         .aggregate(s=Sum('amount'))['s'] or Decimal('0')
     )
     total_expense_dec = (
-        Expense.objects.filter(user=user, date__gte=start, date__lte=end)
+        Expense.objects.filter(user=user, date__range=(start,end))
         .aggregate(s=Sum('amount'))['s'] or Decimal('0')
     )
     total_income = float(total_income_dec)

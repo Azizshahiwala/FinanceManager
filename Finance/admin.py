@@ -57,3 +57,9 @@ class AmountFilter(admin.SimpleListFilter):
             return queryset.filter(amount__gte=500, amount__lte=5000)
         if self.value() == 'high':
             return queryset.filter(amount__gt=5000)
+
+@admin.register(FinanceGoal)
+class FinanceGoalAdmin(admin.ModelAdmin):
+    list_display = ('title', 'user', 'target_amount', 'allocated', 'deadline', 'mode', 'status')
+    list_filter = ('mode', 'status', 'deadline', 'user')
+    search_fields = ('title', 'user__username')

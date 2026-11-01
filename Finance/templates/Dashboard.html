@@ -36,7 +36,7 @@
   <section class="dash-summary" aria-label="Financial summary">
     <article class="dash-card dash-income"><div class="dash-card-head"><span class="dash-icon">↗</span>Total income</div><div class="dash-amount">₹{{ total_income|floatformat:2 }}</div><p class="dash-note">Money received in {{ report_year }}</p></article>
     <article class="dash-card dash-expense"><div class="dash-card-head"><span class="dash-icon">↘</span>Total expenses</div><div class="dash-amount">₹{{ total_expense|floatformat:2 }}</div><p class="dash-note">Money spent in {{ report_year }}</p></article>
-    <article class="dash-card dash-balance"><div class="dash-card-head"><span class="dash-icon">◈</span>Net balance</div><div class="dash-amount">₹{{ balance|floatformat:2 }}</div><p class="dash-note">Income minus expenses for {{ report_year }}</p></article>
+    <article class="dash-card dash-balance"><div class="dash-card-head"><span class="dash-icon">◈</span>Net balance</div><div class="dash-amount">₹{{ balance|floatformat:2 }}</div><p class="dash-note">Income minus expenses across all time</p></article>
   </section>
 
   <section class="dash-highlights" aria-label="Additional statistics">

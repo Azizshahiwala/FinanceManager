@@ -89,3 +89,23 @@ class Expense(models.Model):
         {self.date} | Username: {self.user.username}, Transaction type: {self.type}. | Item: {self.item_name}, Qtd: {self.quantity}, Unit: {self.unit}.
             '''
         return record
+
+class FinanceGoal(models.Model):
+    MODE_CHOICES = [('auto', 'Auto'), ('manual', 'Manual')]
+    STATUS_CHOICES = [('active', 'Active'), ('completed', 'Completed')]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    title = models.CharField(max_length=100)
+    target_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    allocated = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    deadline = models.DateField()
+    mode = models.CharField(max_length=10, choices=MODE_CHOICES, default='manual')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at', 'id']   # first come, first serve
+
+    @property
+    def remaining(self):
+        return self.target_amount - self.allocated

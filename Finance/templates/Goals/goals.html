@@ -1,0 +1,89 @@
+{% extends 'Homepage.html' %}
+{% load static %}
+{% block content %}
+<section class="goals-page">
+
+  <div class="goals-head">
+    <h1>My Goals</h1>
+    <a href="{% url 'goalsHome' %}?new=1" class="btn-pill">+ Create Goal</a>
+  </div>
+  <p class="goals-available">Available to allocate: {{ profile.currency }} {{ available|floatformat:2 }}</p>
+
+  {% if show_form %}
+  <form method="post" action="{% url 'createGoal' %}" class="goal-form">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn-pill">Create goal</button>
+    <a href="{% url 'goalsHome' %}" class="btn-pill ghost">Cancel</a>
+  </form>
+  {% endif %}
+
+  {% for goal in goals %}
+  <article class="goal-card">
+
+    <div class="goal-card-top">
+      <div>
+        <h2>{{ goal.title }}</h2>
+        <p class="goal-deadline">
+          {{ goal.deadline }}
+          {% if goal.is_overdue %}<span class="badge badge-overdue">Overdue</span>{% endif %}
+        </p>
+      </div>
+      <div class="goal-side">
+        <span class="badge badge-{{ goal.mode }}">{{ goal.get_mode_display }}</span>
+        <form method="post" action="{% url 'discardGoal' goal.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="goal-x" title="Discard goal and release funds">X</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="goal-progress"><div style="width: {{ goal.percent }}%"></div></div>
+    <p class="goal-percent">{{ goal.percent }}%</p>
+    <small>
+      Collected: {{ profile.currency }} {{ goal.allocated|floatformat:2 }} &middot;
+      Remaining: {{ profile.currency }} {{ goal.remaining|floatformat:2 }}
+      of {{ profile.currency }} {{ goal.target_amount|floatformat:2 }}
+    </small>
+
+    {% if goal.status == 'completed' %}
+      <p class="goal-done">Completed</p>
+
+    {% elif goal.allocated >= goal.target_amount %}
+      <form method="post" action="{% url 'buyGoal' goal.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-pill">Buy with this goal</button>
+      </form>
+
+    {% elif goal.mode == 'manual' %}
+      {% if goal.can_allocate %}
+      <details class="allocate-panel">
+        <summary class="btn-pill">Allocate funds</summary>
+        <form method="post" action="{% url 'allocateGoal' goal.pk %}" class="allocate-form">
+          {% csrf_token %}
+          <div class="allocate-range">
+            <input type="range" name="amount" min="1" max="{{ goal.max_allocatable }}" step="1"
+                   value="{{ goal.max_allocatable }}"
+                   oninput="this.nextElementSibling.textContent = this.value">
+            <output>{{ goal.max_allocatable }}</output>
+          </div>
+          <p class="allocate-hint">Drag to choose how much to lock. Up to {{ profile.currency }} {{ goal.max_allocatable }}.</p>
+          <button type="submit" class="btn-pill">Lock amount</button>
+        </form>
+      </details>
+      {% else %}
+        <button type="button" class="btn-pill" disabled>Allocate funds</button>
+        <small class="goal-error">Low on balance. Cannot allocate funds.</small>
+      {% endif %}
+
+    {% elif not goal.fundable %}
+      <small class="goal-error">Low on balance. Cannot allocate funds.</small>
+    {% endif %}
+
+  </article>
+  {% empty %}
+  <h2>No goals created</h2>
+  {% endfor %}
+
+</section>
+{% endblock %}

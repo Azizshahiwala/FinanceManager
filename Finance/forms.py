@@ -100,3 +100,25 @@ class MonthlyBudgetForm(forms.ModelForm):
         if amount is None or amount <= 0:
             raise forms.ValidationError('Enter an amount greater than 0.')
         return amount
+
+from datetime import date
+from django import forms
+from Finance.models import FinanceGoal
+
+class FinanceGoalForm(forms.ModelForm):
+    class Meta:
+        model = FinanceGoal
+        fields = ['title', 'target_amount', 'deadline', 'mode']
+        widgets = {'deadline': forms.DateInput(attrs={'type': 'date'})}
+
+    def clean_target_amount(self):
+        amount = self.cleaned_data['target_amount']
+        if amount <= 0:
+            raise forms.ValidationError('Enter an amount greater than 0.')
+        return amount
+
+    def clean_deadline(self):
+        deadline = self.cleaned_data['deadline']
+        if deadline < date.today():
+            raise forms.ValidationError('Deadline must be today or later.')
+        return deadline

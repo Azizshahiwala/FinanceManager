@@ -2,16 +2,15 @@ import calendar
 from datetime import date, datetime, timedelta
 
 from Finance.services.budget_filter import budget_status, current_month_range
-from Finance.models import Profile
 from django.db.models.functions import ExtractMonth
-from .models import Expense, Income, Profile, TransactionLogs
+from .models import Expense, FinanceGoal, Income, Profile, TransactionLogs
 from io import BytesIO
 import time
 from urllib.parse import urlencode
 
 import pandas as pd
-
-from django.shortcuts import render, redirect
+from decimal import Decimal, InvalidOperation
+from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.db import transaction as db_transaction
 from django.db.models import F, Sum
@@ -23,8 +22,10 @@ from django.core import signing
 from django.urls import reverse
 from django.utils.text import get_valid_filename
 
+from django.views.decorators.http import require_POST
+from Finance.services import goals as goal_service
+
 from .forms import *
-from .models import Profile, TransactionLogs
 from .services.transaction_sync import (
     create_or_update_transaction_log,
     get_owned_transaction_or_404,
@@ -33,7 +34,7 @@ from .services.transaction_sync import (
 )
 
 # ── Reports package ──────────────────────────────────────────────────────────
-from .reports.services import build_report_data
+from .reports.services import all_time_balance, build_report_data
 from .reports.insights import generate_insights
 from .reports.charts import bar_chart, donut_chart
 from .reports.pdf import render_pdf
@@ -133,9 +134,12 @@ def expenseAdd(request):
     if request.method == 'POST':
         form = ExpenseDataForm(request.POST)
         if form.is_valid():
-            save_transaction_with_log(request.user, form, 'expense')
-            messages.success(request, 'Expense saved successfully.')
-            return redirect('expenseAdd')
+            if form.cleaned_data['amount'] > goal_service.available(request.user):
+                form.add_error('amount', 'This money is locked in goals. Check available balance on the Goals page.')
+            else:
+                save_transaction_with_log(request.user, form, 'expense')
+                messages.success(request, 'Expense saved successfully.')
+                return redirect('expenseAdd')
     else:
         form = ExpenseDataForm()
 
@@ -207,27 +211,6 @@ def incomeAdd(request):
 
 
 @login_required
-def editTransaction(request, transaction_type, transaction_id):
-    row = get_owned_transaction_or_404(request.user, transaction_type, transaction_id)
-    form_class = IncomeDataForm if transaction_type == 'income' else ExpenseDataForm
-
-    if request.method == 'POST':
-        form = form_class(request.POST, instance=row)
-        if form.is_valid():
-            save_transaction_with_log(request.user, form, transaction_type)
-            messages.success(request, 'Transaction updated successfully.')
-            return redirect('transaction')
-    else:
-        form = form_class(instance=row)
-
-    return render(
-        request,
-        'Transaction/edit.html',
-        {'form': form, 'transaction_type': transaction_type, 'row': row},
-    )
-
-
-@login_required
 def deleteTransaction(request, transaction_type, transaction_id):
     row = get_owned_transaction_or_404(request.user, transaction_type, transaction_id)
 
@@ -276,9 +259,10 @@ def dashboard(request):
     monthly_expense = monthly_totals(expenses)
     total_income = sum(monthly_income)
     total_expense = sum(monthly_expense)
-    balance = total_income - total_expense
-    savings_rate = round(balance / total_income * 100, 1) if total_income > 0 else None
+    year_balance = total_income - total_expense
+    savings_rate = round(year_balance / total_income * 100, 1) if total_income > 0 else None
     savings_bar = max(0, min(100, savings_rate)) if savings_rate is not None else 0
+    balance = all_time_balance(request.user)
 
     # Daily data for the combined bar + line chart. No future dates are generated.
     year_start = date(report_year, 1, 1)
@@ -720,10 +704,9 @@ def budgetSetup(request):
     profile, _ = Profile.objects.get_or_create(user=request.user)
 
     today = date.today()
-    all_time = build_report_data(request.user, date(2000, 1, 1), today)
     this_month = build_report_data(request.user, today.replace(day=1), today)
 
-    balance = all_time['balance']
+    balance = all_time_balance(request.user)
     can_edit = balance < BALANCE_LIMIT
 
     editing = request.GET.get('edit') == '1'
@@ -751,3 +734,80 @@ def budgetSetup(request):
         'budget_is_set': budget_is_set,
         'balance_limit': BALANCE_LIMIT,
     })
+
+def _goals_page(request, form=None):
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+    available = goal_service.available(request.user)
+    goals = list(FinanceGoal.objects.filter(user=request.user))
+    for goal in goals:
+        goal.percent = int(goal.allocated * 100 / goal.target_amount) if goal.target_amount else 0
+        goal.is_overdue = goal.status == 'active' and goal.deadline < date.today()
+        goal.fundable = goal.status == 'active' and available >= goal.remaining
+        goal.max_allocatable = int(min(available, goal.remaining)) if goal.status == 'active' else 0
+        goal.can_allocate = goal.max_allocatable >= 1
+    return render(request, 'Goals/goals.html', {
+        'profile': profile,
+        'available': available,
+        'goals': goals,
+        'form': form or FinanceGoalForm(),
+        'show_form': form is not None or 'new' in request.GET,
+    })
+
+
+@login_required
+def goalsHome(request):
+    return _goals_page(request)
+
+
+@login_required
+@require_POST
+def createGoal(request):
+    form = FinanceGoalForm(request.POST)
+    if not form.is_valid():
+        return _goals_page(request, form)
+    goal = form.save(commit=False)
+    goal.user = request.user
+    goal.save()
+    goal_service.run_auto_allocation(request.user)
+    messages.success(request, 'Goal created.')
+    return redirect('goalsHome')
+
+@login_required
+@require_POST
+def allocateGoal(request, pk):
+    goal = get_object_or_404(FinanceGoal, pk=pk, user=request.user, mode='manual', status='active')
+    try:
+        amount = Decimal(request.POST.get('amount', ''))
+    except InvalidOperation:
+        amount = Decimal('0')
+    error = goal_service.allocate_amount(goal, amount)
+    if error:
+        messages.error(request, error)
+    else:
+        messages.success(request, 'Funds allocated.')
+    return redirect('goalsHome')
+
+@login_required
+@require_POST
+def discardGoal(request, pk):
+    goal = get_object_or_404(FinanceGoal, pk=pk, user=request.user)
+    goal.delete()
+    goal_service.run_auto_allocation(request.user)
+    messages.success(request, 'Goal discarded. Funds released.')
+    return redirect('goalsHome')
+
+
+@login_required
+@require_POST
+def buyGoal(request, pk):
+    goal = get_object_or_404(FinanceGoal, pk=pk, user=request.user, status='active')
+    error = goal_service.buy_goal(goal)
+    messages.error(request, error) if error else messages.success(request, 'Goal completed. Expense recorded.')
+    return redirect('goalsHome')
+
+
+@login_required
+@require_POST
+def recalculateGoals(request):
+    goal_service.run_auto_allocation(request.user)
+    return redirect('goalsHome')

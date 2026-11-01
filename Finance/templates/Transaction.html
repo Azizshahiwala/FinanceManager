@@ -102,7 +102,6 @@
 
         {% if tx.source_id %}
         <div class="tx-actions">
-            <a href="{% url 'editTransaction' tx.type tx.source_id %}" class="btn-pill ghost">Edit</a>
             <form method="post" action="{% url 'deleteTransaction' tx.type tx.source_id %}" onsubmit="return confirm('Delete this transaction?');">
                 {% csrf_token %}
                 <button type="submit" class="btn-pill danger">Delete</button>

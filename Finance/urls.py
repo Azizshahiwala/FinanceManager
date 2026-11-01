@@ -11,7 +11,6 @@ urlpatterns = [
     path('logout/', views.logout, name='logout'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('transaction/', views.transaction, name='transaction'),
-    path('transactions/<str:transaction_type>/<int:transaction_id>/edit/', views.editTransaction, name='editTransaction'),
     path('transactions/<str:transaction_type>/<int:transaction_id>/delete/', views.deleteTransaction, name='deleteTransaction'),
     path('budget/', views.budgetSetup, name='budgetSetup'),path('expense-add/', views.expenseAdd, name='expenseAdd'),
     path('income-add/', views.incomeAdd, name='incomeAdd'),
@@ -25,4 +24,11 @@ urlpatterns = [
     path('reports/', views.reportsHome, name='reportsHome'),
     path('reports/preview/', views.reportPreview, name='reportPreview'),
     path('reports/pdf/', views.reportPdf, name='reportPdf'),
+    
+    path('goals/', views.goalsHome, name='goalsHome'),
+    path('goals/create/', views.createGoal, name='createGoal'),
+    path('goals/recalculate/', views.recalculateGoals, name='recalculateGoals'),
+    path('goals/<int:pk>/allocate/', views.allocateGoal, name='allocateGoal'),
+    path('goals/<int:pk>/discard/', views.discardGoal, name='discardGoal'),
+    path('goals/<int:pk>/buy/', views.buyGoal, name='buyGoal'),
 ]
